@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Simple Game with Controls</title>
+    <style>
+        body { margin: 0; display: flex; }
+        canvas { display: block; }
+        #sidebar {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            width: 150px;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h3>Control Cube</h3>
+        <button id="moveForward">Forward</button>
+        <button id="moveBackward">Backward</button>
+        <button id="moveLeft">Left</button>
+        <button id="moveRight">Right</button>
+        <h3>Control Camera</h3>
+        <button id="cameraForward">Camera Forward</button>
+        <button id="cameraBackward">Camera Backward</button>
+        <button id="cameraLeft">Camera Left</button>
+        <button id="cameraRight">Camera Right</button>
+        <button id="cameraUp">Camera Up</button>
+        <button id="cameraDown">Camera Down</button>
+        <button id="rotateClockwise">Rotate Clockwise</button>
+        <button id="rotateCounterclockwise">Rotate Counterclockwise</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
