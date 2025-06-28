@@ -2,7 +2,7 @@ set(SOURCES
     neuron.c
 )
 
-add_library(neuron SHARED ${SOURCES})
+add_library(neuron ${SOURCES})
 
 set_target_properties(neuron PROPERTIES
     OUTPUT_NAME "neuron"
@@ -11,6 +11,7 @@ set_target_properties(neuron PROPERTIES
 target_include_directories(neuron
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/lib
 )
 
 set(CMAKE_C_FLAGS "")
