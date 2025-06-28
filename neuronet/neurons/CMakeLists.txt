@@ -21,6 +21,7 @@ target_compile_options(neuron
     PRIVATE
         -Wall
         -Wextra
+        -Wno-unused-parameter   # DELETEME
         -lm
         -g
         -lws2_32
