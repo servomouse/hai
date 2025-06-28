@@ -7,14 +7,11 @@ set(NEURON_SOURCES
     # neuron_save_restore.c
 )
 
-add_library(neuron ${NEURON_SOURCES})
+add_library(neuron SHARED ${SOURCES})
 
-# target_link_libraries(neuron
-#     PRIVATE
-#         utils
-#         poly_neuron
-#         linear_neuron
-# )
+set_target_properties(neuron PROPERTIES
+    OUTPUT_NAME "neuron"
+)
 
 target_include_directories(neuron
     PUBLIC

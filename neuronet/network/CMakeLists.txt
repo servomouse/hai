@@ -1,9 +1,11 @@
-add_library(network
-    # network_common.c
-    # network_save_restore.c
-    # network_train.c
-    # network_mutations.c
-    # neuron_iface.c
+set(SOURCES
+    # network.c
+)
+
+add_library(network SHARED ${SOURCES})
+
+set_target_properties(network PROPERTIES
+    OUTPUT_NAME "network"
 )
 
 # target_link_libraries(network
@@ -13,7 +15,7 @@ add_library(network
 # )
 
 target_include_directories(network
-    PUBLIC
+    PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
