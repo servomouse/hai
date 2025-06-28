@@ -1,0 +1,1 @@
+An attempt to create a general AI using the hybrid approach. The neuronet part is a refactored version of [this repo](https://github.com/servomouse/neural_network)
