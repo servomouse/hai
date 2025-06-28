@@ -12,3 +12,4 @@ void neuron_set_coeffs(neuron_t *n, double *values);                // Set all c
 double * neuron_get_coeffs(neuron_t *n);                // Returns a pointer to an array of all coefficients, free after use
 double neuron_get_coeff(neuron_t *n, uint32_t idx);     // Get the value of a specific coefficient
 double neuron_get_output(neuron_t *n, double *inputs);
+double activation_func(double value);

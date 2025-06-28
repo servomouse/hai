@@ -37,5 +37,23 @@ double neuron_get_coeff(neuron_t *n, uint32_t idx) {
 }
 
 double neuron_get_output(neuron_t *n, double *inputs) {
-    return 0;
+    // TODO: Process inputs
+    switch(n->type) {
+        case Linear:
+            return neuron_linear_get_output(n);
+        case Poly:
+            return neuron_poly_get_output(n);
+        case Pattern:
+            return neuron_pattern_get_output(n);
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n->type);
+    }
+}
+
+double activation_func(double value) {
+    if(value >= 1.0)
+        return 1.0;
+    if(value <= -1.0)
+        return -1.0;
+    return value;
 }
