@@ -9,7 +9,12 @@
 void neuron_create(neuron_t *n, neuron_type_t n_type, uint32_t num_inputs);
 void neuron_set_coeff(neuron_t *n, uint32_t idx, double value);     // Set specific coefficient
 void neuron_set_coeffs(neuron_t *n, double *values);                // Set all coefficients
-double * neuron_get_coeffs(neuron_t *n);                // Returns a pointer to an array of all coefficients, free after use
+char * neuron_get_coeffs(neuron_t *n);                  // Returns coefficients as a string, free after use
 double neuron_get_coeff(neuron_t *n, uint32_t idx);     // Get the value of a specific coefficient
 double neuron_get_output(neuron_t *n, double *inputs);
 double activation_func(double value);
+
+// The mutations feature:
+void neuron_stash_state(neuron_t * n);  // The opposite is neuron_rollback
+void neuron_mutate(neuron_t * n);
+void neuron_rollback(neuron_t * n);     // The opposite is neuron_stash_state

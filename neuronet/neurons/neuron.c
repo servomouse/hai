@@ -20,20 +20,31 @@ void neuron_create(neuron_t *n, neuron_type_t n_type, uint32_t num_inputs) {
     }
 }
 
+// Use array[array_idx] as input[input_idx]
+void neuron_set_input_idx(neuron_t *n, uint32_t input_idx, uint32_t array_idx) {
+    if(input_idx >= n->num_inputs)
+        RAISE("Error: Input index %d is greater than the number of inputs %d\n", input_idx, n->num_inputs);
+    n->input_indices[input_idx] = array_idx;
+}
+
 void neuron_set_coeff(neuron_t *n, uint32_t idx, double value) {
-    ;
+    if(idx >= n->num_coeffs)
+        RAISE("Error: Index %d is greater than the number of coefficients %d\n", idx, n->num_coeffs);
+    n->coeffs[idx] = value;
 }
 
 void neuron_set_coeffs(neuron_t *n, double *values) {
-    ;
+    for(uint32_t i=0; i<n->num_coeffs; i++) {
+        n->coeffs[i] = values[i];
+    }
 }
 
-double * neuron_get_coeffs(neuron_t *n) {
-    return 0;
+char * neuron_get_coeffs(neuron_t *n) {
+    return doubles_to_string(n->coeffs, n->num_coeffs);
 }
 
 double neuron_get_coeff(neuron_t *n, uint32_t idx) {
-    return 0;
+    return n->coeffs[idx];
 }
 
 double neuron_get_output(neuron_t *n, double *inputs) {
