@@ -1,10 +1,5 @@
-# add_subdirectory(linear)
-# add_subdirectory(poly)
-
-set(NEURON_SOURCES
-    # neuron.c
-    # neuron_mutations.c
-    # neuron_save_restore.c
+set(SOURCES
+    neuron.c
 )
 
 add_library(neuron SHARED ${SOURCES})
