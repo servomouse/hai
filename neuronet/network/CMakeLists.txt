@@ -1,5 +1,5 @@
 set(SOURCES
-    # network.c
+    network.c
 )
 
 add_library(network SHARED ${SOURCES})
