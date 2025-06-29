@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef enum {
+typedef uint32_t neuron_type_t;
+
+enum neuron_type {
     Linear = 0,
     Poly,
     Pattern,
-} neuron_type_t;
+};
 
 typedef struct {
     double *inputs;

@@ -1,11 +1,17 @@
 set(SOURCES
     neuron.c
+    neuron_mutations.c
 )
 
 add_library(neuron ${SOURCES})
 
-set_target_properties(neuron PROPERTIES
-    OUTPUT_NAME "neuron"
+# set_target_properties(neuron PROPERTIES
+#     OUTPUT_NAME "neuron"
+# )
+
+target_link_libraries(neuron
+    PRIVATE
+        utils
 )
 
 target_include_directories(neuron

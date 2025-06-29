@@ -1,5 +1,6 @@
 #include "neuron.h"
 #include "utils.h"
+#include "mymath.h"
 
 static double control_coeffs_func(double coeff) {
     if(coeff > 1.0) {
