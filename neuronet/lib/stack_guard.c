@@ -1,4 +1,6 @@
 #include "stack_guard.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 void __stack_chk_guard_setup(void)
 {

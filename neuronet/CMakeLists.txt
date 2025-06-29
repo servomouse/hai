@@ -5,6 +5,7 @@ project(project_name)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)   # Generate compile_commands.json for vscode
 include(CTest)
 
+add_subdirectory(lib)
 add_subdirectory(neurons)
 add_subdirectory(network)
 add_subdirectory(tests)
