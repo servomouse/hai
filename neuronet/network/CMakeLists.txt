@@ -6,13 +6,14 @@ add_library(network SHARED ${SOURCES})
 
 set_target_properties(network PROPERTIES
     OUTPUT_NAME "network"
+    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
 )
 
-# target_link_libraries(network
-#     PRIVATE
-#         neuron
-#         utils
-# )
+target_link_libraries(network
+    PRIVATE
+        neuron
+        utils
+)
 
 target_include_directories(network
     PRIVATE
@@ -26,6 +27,7 @@ target_compile_options(network
     PRIVATE
         -Wall
         -Wextra
+        -Wno-unused-parameter   # DELETEME
         -lm
         -g
         -lws2_32
