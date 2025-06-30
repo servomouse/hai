@@ -17,7 +17,7 @@ static void _create(network_t *net, network_map_t *map, uint8_t is_micronet) {
     net->neurons = (neuron_t*)calloc(net->num_neurons, sizeof(neuron_t));
 
     // Initialize neurons:
-    uint32_t *neurons = map->neurons;
+    uint32_t *neurons = (uint32_t*)map->neurons;
     uint32_t offset = 0;
     for(uint32_t i=0; i<net->num_neurons; i++) {
         neuron_description_t *neuron = (neuron_description_t *)&neurons[offset];
@@ -38,6 +38,17 @@ void network_create(network_map_t *net_map, network_map_t *micronet_maps) {
     }
 }
 
-void network_get_outputs(double *inputs, double *otputs) {
-    ;
+double * network_get_outputs(double *inputs) {
+    for(uint32_t i=0; i<network->size; i++) {
+        if(i < network->num_inputs) {
+            network->arr[i] = inputs[i];
+        } else {
+            network->arr[i] = neuron_get_output(&network->neurons[i], network->arr);
+        }
+    }
+    for(uint32_t i=0; i<network->num_outputs; i++) {
+        uint32_t idx = network->output_indices[i];
+        network->outputs[i] = network->arr[idx];
+    }
+    return network->outputs;
 }

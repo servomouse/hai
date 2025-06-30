@@ -7,4 +7,4 @@
 #include "network_types.h"
 
 void network_create(network_map_t *net_map, network_map_t *micronet_maps);   // Provide all the micronet maps or NULL
-void network_get_outputs(double *inputs, double *otputs);
+double * network_get_outputs(double *inputs);
