@@ -4,19 +4,22 @@
 #include "neuron_poly.c"
 #include "neuron_pattern.c"
 
-void neuron_create(neuron_t *n, neuron_type_t n_type, uint32_t num_inputs) {
-    switch(n_type) {
+void neuron_create(neuron_t *n, neuron_description_t *info) {
+    switch(info->n_type) {
         case Linear:
-            neuron_linear_create(n, num_inputs);
+            neuron_linear_create(n, info->num_inputs);
             break;
         case Poly:
-            neuron_poly_create(n, num_inputs);
+            neuron_poly_create(n, info->num_inputs);
             break;
         case Pattern:
-            neuron_pattern_create(n, num_inputs);
+            neuron_pattern_create(n, info->num_inputs);
             break;
         default:
-            RAISE("Error: Unknown neuron type: %d\n", n_type);
+            RAISE("Error: Unknown neuron type: %d\n", info->n_type);
+    }
+    for(uint32_t i=0; i<info->num_inputs; i++) {
+        n->input_indices[i] = info->indices[i];
     }
 }
 

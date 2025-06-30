@@ -10,6 +10,7 @@ enum neuron_type {
     Linear = 0,
     Poly,
     Pattern,
+    Neuron_types_num,   // Keep me last
 };
 
 typedef struct {
@@ -28,3 +29,11 @@ typedef struct {
     double output;
     neuron_type_t type;
 } neuron_t;
+
+typedef struct {
+    uint32_t idx;
+    uint32_t num_inputs;
+    neuron_type_t n_type;
+    uint32_t output_idx;    // set to -1 for a neuron thet is not connected to the output
+    uint32_t indices[0];
+} neuron_description_t;
