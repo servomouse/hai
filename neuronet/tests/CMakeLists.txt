@@ -29,4 +29,5 @@ function(create_tests)
 endfunction()
 
 create_tests(
+    network_linear_test
 )
