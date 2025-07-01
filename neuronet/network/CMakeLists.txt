@@ -2,6 +2,7 @@ set(SOURCES
     network.c
 )
 
+# add_library(network ${SOURCES})
 add_library(network SHARED ${SOURCES})
 
 set_target_properties(network PROPERTIES
@@ -16,7 +17,7 @@ target_link_libraries(network
 )
 
 target_include_directories(network
-    PRIVATE
+    PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

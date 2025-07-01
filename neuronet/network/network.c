@@ -1,5 +1,6 @@
 #include "network.h"
 #include "neuron.h"
+#include "mymath.h"
 
 network_t *network;
 
@@ -51,4 +52,13 @@ double * network_get_outputs(double *inputs) {
         network->outputs[i] = network->arr[idx];
     }
     return network->outputs;
+}
+
+void network_mutate(void) {
+    network->mutated_neuron_idx = random_int(0, network->num_neurons);
+    neuron_mutate(&network->neurons[network->mutated_neuron_idx]);
+}
+
+void network_rollback(void) {
+    neuron_rollback(&network->neurons[network->mutated_neuron_idx]);
 }
