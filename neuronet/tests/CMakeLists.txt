@@ -17,8 +17,6 @@ endfunction()
 
 # Function to create tests and their corresponding targets
 function(create_tests)
-    message(STATUS "MYLOG::: ${ARGN}")
-
     set(tests_list ${ARGN})
 
     # Iterate over the list of tests and create individual targets

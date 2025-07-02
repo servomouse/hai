@@ -44,12 +44,6 @@ void neuron_set_coeffs(neuron_t *n, double *values) {
 
 char * neuron_get_coeffs(neuron_t *n) {
     char *coeffs = doubles_to_string(n->coeffs, n->num_coeffs);
-    // printf("Neuron coeffs: [");
-    // for(uint32_t i=0; i<n->num_coeffs; i++) {
-    //     printf("%f, ", n->coeffs[i]);
-    // }
-    // printf("]\n");
-    // printf("Neuron coeffs: %s\n", coeffs);
     return coeffs;
 }
 

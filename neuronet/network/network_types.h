@@ -10,6 +10,11 @@ typedef struct {
     neuron_description_t *neurons;
 } network_map_t;
 
+typedef struct {
+    uint32_t num_items;
+    char **items;
+} net_coeffs_t;
+
 typedef struct network_t {
     uint8_t is_micronet;
     uint32_t num_inputs;
