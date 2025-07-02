@@ -26,6 +26,8 @@ target_compile_options(network_linear_test
         -fstack-protector-all
 )
 
+add_test(NAME network_linear_test COMMAND network_linear_test)
+
 # target_compile_definitions(network_linear_test
 #     PRIVATE
 #         BCKP_DIR_PATH="${PROJECT_SOURCE_DIR}/backups"
