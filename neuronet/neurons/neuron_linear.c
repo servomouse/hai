@@ -1,4 +1,5 @@
 #include "neuron.h"
+#include "mymath.h"
 
 void neuron_linear_create(neuron_t *n, uint32_t num_inputs) {
     n->type = Linear;
@@ -9,7 +10,10 @@ void neuron_linear_create(neuron_t *n, uint32_t num_inputs) {
     n->coeffs = (double*)calloc(n->num_coeffs, sizeof(double));
     n->coeffs_backup = (double*)calloc(n->num_coeffs, sizeof(double));
     n->coeffs_delta = (double*)calloc(n->num_coeffs, sizeof(double));
-    n->mutation_step = 0.001;
+    n->mutation_step = 0.1;
+    for(uint32_t i=0; i<n->num_coeffs; i++) {
+        n->coeffs[i] = random_double(-1.0, 1.0);
+    }
 }
 
 double neuron_linear_get_output(neuron_t *n) {
