@@ -13,7 +13,7 @@ double * network_get_outputs(double *inputs) {
         if(i < network->num_inputs) {
             network->arr[i] = inputs[i];
         } else {
-            network->arr[i] = neuron_get_output(&network->neurons[i], network->arr);
+            network->arr[i] = neuron_get_output(&network->neurons[i-network->num_inputs], network->arr);
         }
     }
     for(uint32_t i=0; i<network->num_outputs; i++) {
