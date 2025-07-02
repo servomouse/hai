@@ -30,10 +30,11 @@ typedef struct {
     neuron_type_t type;
 } neuron_t;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
+    uint32_t desc_size;
     uint32_t idx;
     uint32_t num_inputs;
     neuron_type_t n_type;
-    uint32_t output_idx;    // set to -1 for a neuron thet is not connected to the output
+    // uint32_t output_idx;    // set to -1 for a neuron thet is not connected to the output
     uint32_t indices[0];
 } neuron_description_t;
