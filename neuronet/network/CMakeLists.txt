@@ -1,14 +1,15 @@
 set(SOURCES
     network.c
+    network_creator.c
 )
 
-# add_library(network ${SOURCES})
-add_library(network SHARED ${SOURCES})
+add_library(network ${SOURCES})
+# add_library(network SHARED ${SOURCES})
 
-set_target_properties(network PROPERTIES
-    OUTPUT_NAME "network"
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-)
+# set_target_properties(network PROPERTIES
+#     OUTPUT_NAME "network"
+#     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
+# )
 
 target_link_libraries(network
     PRIVATE

@@ -16,11 +16,11 @@ typedef struct network_t {
     uint32_t num_neurons;
     uint32_t num_outputs;
     uint32_t size;
-    uint32_t *output_indices;
     double *arr;
-    double *outputs;
     neuron_t *neurons;
+    uint32_t *output_indices;
+    double *outputs;
     uint32_t mutated_neuron_idx;
-    network_map_t map;
-    struct network_t *micronets;
+    uint32_t num_micronets;
+    struct network_t **micronets;
 } network_t;
