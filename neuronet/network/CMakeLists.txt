@@ -3,13 +3,20 @@ set(SOURCES
     network_creator.c
 )
 
-add_library(network ${SOURCES})
-# add_library(network SHARED ${SOURCES})
+set(SHARED_BUILD FALSE)
 
-# set_target_properties(network PROPERTIES
-#     OUTPUT_NAME "network"
-#     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-# )
+if(SHARED_BUILD)
+    message(STATUS "Building shared version of the network library")
+    add_library(network SHARED ${SOURCES})
+
+    set_target_properties(network PROPERTIES
+        OUTPUT_NAME "network"
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
+    )
+else()
+    message(STATUS "Building static version of the network library")
+    add_library(network ${SOURCES})
+endif()
 
 target_link_libraries(network
     PRIVATE
