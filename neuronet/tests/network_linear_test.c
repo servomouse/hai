@@ -5,8 +5,8 @@ uint32_t net_maps[] = {
     0,  // Num micronets
     40, // Main net description size
     4,  // Net num inputs
-    5,  // Net size
-    6,  // Net num outputs
+    8,  // Net size
+    4,  // Net num outputs
     4,  // Net output indices:
     5,
     6,
@@ -20,10 +20,9 @@ uint32_t net_maps[] = {
 };
 
 int main(void) {
-    // network_create(net_maps);
-    // double inputs[] = {1, 1, 1, 1};
-    // double *outputs = network_get_outputs(inputs);
-    // printf("Outputs: [%f, %f, %f, %f]\n", outputs[0], outputs[1], outputs[2], outputs[3]);
-    printf("Hello world!");
+    network_create(net_maps);
+    double inputs[] = {1, 1, 1, 1};
+    double *outputs = network_get_outputs(inputs);
+    printf("Outputs: [%f, %f, %f, %f]\n", outputs[0], outputs[1], outputs[2], outputs[3]);
     return EXIT_SUCCESS;
 }
