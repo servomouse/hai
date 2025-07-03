@@ -23,9 +23,9 @@ double * network_get_outputs(double *inputs) {
     return network->outputs;
 }
 
-void network_mutate(void) {
+void network_mutate(double mutation_step) {
     network->mutated_neuron_idx = random_int(0, network->num_neurons);
-    neuron_mutate(&network->neurons[network->mutated_neuron_idx]);
+    neuron_mutate(&network->neurons[network->mutated_neuron_idx], mutation_step);
 }
 
 void network_rollback(void) {

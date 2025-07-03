@@ -22,9 +22,6 @@ typedef struct {
     // Mutations feature:
     double *coeffs_backup;
     double *coeffs_delta;
-    uint8_t mutated;
-    uint32_t bad_mutations_counter;
-    double mutation_step;
     // !Mutations feature
     double output;
     neuron_type_t type;

@@ -16,5 +16,5 @@ double activation_func(double value);
 
 // The mutations feature:
 void neuron_stash_state(neuron_t * n);  // The opposite is neuron_rollback
-void neuron_mutate(neuron_t * n);
+void neuron_mutate(neuron_t * n, double mutation_step);
 void neuron_rollback(neuron_t * n);     // The opposite is neuron_stash_state
