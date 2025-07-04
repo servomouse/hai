@@ -10,7 +10,7 @@
     #define DLL_PREFIX __declspec(dllexport)
 #endif
 
-#define RAISE(msg, ...) printf(msg " (line %d in file %s)\n", ##__VA_ARGS__, __LINE__, __FILE__); fflush(stdout); exit(EXIT_FAILURE)
+#define RAISE(msg, ...) {printf(msg " (line %d in file %s)\n", ##__VA_ARGS__, __LINE__, __FILE__); fflush(stdout); exit(EXIT_FAILURE);}
 
 // Creates an array like this: {-0.123457, 0.987654, -0.456789}
 // Fails on error, no need to check if the result is NULL. Free the result after use
