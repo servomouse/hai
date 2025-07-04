@@ -37,6 +37,7 @@ target_compile_options(network
         -Wall
         -Wextra
         -Wno-unused-parameter   # DELETEME
+        -Werror=implicit-function-declaration   # Treat implicit declaration as an error, not as a warning
         -lm
         -g
         -lws2_32

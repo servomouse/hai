@@ -21,6 +21,8 @@ target_compile_options(network_linear_test
         -Wall
         -Wextra
         -lm
+        -Wno-unused-parameter   # DELETEME
+        -Werror=implicit-function-declaration   # Treat implicit declaration as an error, not as a warning
         -g
         -lws2_32
         -fstack-protector-all
