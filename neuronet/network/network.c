@@ -5,8 +5,8 @@
 
 network_t *network;
 
-void network_create(uint32_t data[]) {
-    network = unpack_network_description(data);
+void network_create(uint32_t net_arch[]) {
+    network = unpack_network_description(net_arch);
 }
 
 double * network_get_outputs(double *inputs) {
@@ -33,14 +33,10 @@ void network_rollback(void) {
     neuron_rollback(&network->neurons[network->mutated_neuron_idx]);
 }
 
-net_coeffs_t * network_get_coeffs(void) {
-    net_coeffs_t *result = (net_coeffs_t*)calloc(1, sizeof(net_coeffs_t));
-    result->items = (char**)calloc(network->num_neurons, sizeof(char*));
-    result->num_items = network->num_neurons;
-    for(uint32_t i=0; i<network->num_neurons; i++) {
-        result->items[i] = neuron_get_coeffs(&network->neurons[i]);
-    }
-    return result;
+char * network_get_coeffs(uint32_t idx) {
+    if(idx >= network->num_neurons)
+        RAISE("Error: idx is outside of the array: idx = %d, num_neurons: %d\n", idx, network->num_neurons);
+    return neuron_get_coeffs(&network->neurons[idx]);
 }
 
 void network_set_coeffs(uint32_t idx, double *values) {
