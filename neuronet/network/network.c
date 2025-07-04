@@ -1,6 +1,7 @@
 #include "network.h"
 #include "neuron.h"
 #include "mymath.h"
+#include "utils.h"
 
 network_t *network;
 
@@ -40,4 +41,11 @@ net_coeffs_t * network_get_coeffs(void) {
         result->items[i] = neuron_get_coeffs(&network->neurons[i]);
     }
     return result;
+}
+
+void network_set_coeffs(uint32_t idx, double *values) {
+    if(idx >= network->num_neurons)
+        RAISE("Error: idx is outside of the array: idx = %d, num_neurons: %d\n", idx, network->num_neurons);
+    printf("Setting coeffs for the neuron %d\n", idx);
+    neuron_set_coeffs(&network->neurons[idx], values);
 }
