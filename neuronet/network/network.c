@@ -5,10 +5,12 @@
 
 network_t *network;
 
+DLL_PREFIX
 void network_create(uint32_t net_arch[]) {
     network = unpack_network_description(net_arch);
 }
 
+DLL_PREFIX
 double * network_get_outputs(double *inputs) {
     for(uint32_t i=0; i<network->size; i++) {
         if(i < network->num_inputs) {
@@ -24,21 +26,24 @@ double * network_get_outputs(double *inputs) {
     return network->outputs;
 }
 
+DLL_PREFIX
 void network_mutate(double mutation_step) {
     network->mutated_neuron_idx = random_int(0, network->num_neurons);
     neuron_mutate(&network->neurons[network->mutated_neuron_idx], mutation_step);
 }
 
+DLL_PREFIX
 void network_rollback(void) {
     neuron_rollback(&network->neurons[network->mutated_neuron_idx]);
 }
-
+DLL_PREFIX
 char * network_get_coeffs(uint32_t idx) {
     if(idx >= network->num_neurons)
         RAISE("Error: idx is outside of the array: idx = %d, num_neurons: %d\n", idx, network->num_neurons);
     return neuron_get_coeffs(&network->neurons[idx]);
 }
 
+DLL_PREFIX
 void network_set_coeffs(uint32_t idx, double *values) {
     if(idx >= network->num_neurons)
         RAISE("Error: idx is outside of the array: idx = %d, num_neurons: %d\n", idx, network->num_neurons);
