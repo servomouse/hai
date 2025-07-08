@@ -60,21 +60,20 @@ idx     val
 */
 
 // Network description structure:
-#define NUM_MICRONETS   0   // Contains at least one network
-#define NET_MAP         1
-    // For i in range(1 + data[NUM_MICRONETS])
-    #define NET_DESCRIPTION_SIZE    0
-    #define NET_NUM_INPUTS          1
-    #define NET_SIZE                2
-    #define NET_NUM_OUTPUTS         3
-    #define NET_OUTPUT_INDICES      4
-    #define NET_NEURONS             4 // Plus data[NET_NUM_OUTPUTS]
-        // For j in range(data[NET_SIZE] - data[NET_NUM_INPUTS])
-        #define NEURON_DESCRIPTION_SIZE 0
-        #define NEURON_IDX              1
-        #define NEURON_NUM_INPUTS       2
-        #define NEURON_TYPE             3
-        #define NEURON_INDICES          4
+
+// For i in range(1 + data[NUM_MICRONETS])
+#define NET_DESCRIPTION_SIZE    0
+#define NET_NUM_INPUTS          1
+#define NET_SIZE                2
+#define NET_NUM_OUTPUTS         3
+#define NET_OUTPUT_INDICES      4
+#define NET_NEURONS             4 // Plus data[NET_NUM_OUTPUTS]
+    // For j in range(data[NET_SIZE] - data[NET_NUM_INPUTS])
+    #define NEURON_DESCRIPTION_SIZE 0
+    #define NEURON_IDX              1
+    #define NEURON_NUM_INPUTS       2
+    #define NEURON_TYPE             3
+    #define NEURON_INDICES          4
 
 
 network_t * parse_net_map(uint32_t *data) {
@@ -105,18 +104,7 @@ network_t * parse_net_map(uint32_t *data) {
 }
 
 network_t *unpack_network_description(uint32_t data[]) {
-    uint32_t num_micronets = data[NUM_MICRONETS];
-    network_t *net = parse_net_map(&data[NET_MAP]);
+    network_t *net = parse_net_map(data);
     net->is_micronet = 0;
-    net->num_micronets = num_micronets;
-    if(num_micronets == 0) {
-        return net;
-    }
-    uint32_t offset = 0;
-    net->micronets = (network_t**)calloc(num_micronets, sizeof(network_t*));
-    for(uint32_t i=0; i<num_micronets; i++) {
-        net->micronets[i] = parse_net_map(&data[NET_MAP+offset]);
-        offset = data[NET_DESCRIPTION_SIZE];
-    }
     return net;
 }
