@@ -30,7 +30,10 @@ def get_dll_function(dll_object, foo_name, signature):
         arg = arg.strip()
         if arg.endswith("*"):
             arg = arg[:-1].strip()
-            arg = ctypes.POINTER(c_types[arg])
+            if arg == "void":
+                arg = ctypes.c_void_p
+            else:
+                arg = ctypes.POINTER(c_types[arg])
         else:
             arg = c_types[arg.strip()]
         foo_args.append(arg)
