@@ -50,3 +50,10 @@ void network_set_coeffs(uint32_t idx, double *values) {
     printf("Setting coeffs for the neuron %d\n", idx);
     neuron_set_coeffs(&network->neurons[idx], values);
 }
+
+DLL_PREFIX
+void network_free(void *ptr) {
+    if(ptr != NULL) {
+        free(ptr);
+    }
+}

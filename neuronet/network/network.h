@@ -13,8 +13,8 @@ void network_rollback(void);
 
 // Returns a list of coeffs of a given neuron as a string like this: {-0.123457, 0.987654, -0.456789}. Free after use
 char * network_get_coeffs(uint32_t idx);
-
 void network_set_coeffs(uint32_t idx, double *values);
+void network_free(void *ptr);   // Provides the ability to free allocated memory from outside of the SO/DLL
 
 // Helper functions:
 network_t *unpack_network_description(uint32_t data[]);
