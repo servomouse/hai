@@ -2,6 +2,7 @@
 #include "neuron.h"
 #include "mymath.h"
 #include "utils.h"
+#include <time.h>
 
 network_t *network;
 
@@ -56,4 +57,9 @@ void network_free(void *ptr) {
     if(ptr != NULL) {
         free(ptr);
     }
+}
+
+DLL_PREFIX
+void network_init_rng(size_t seed) {
+    srand(seed);
 }
