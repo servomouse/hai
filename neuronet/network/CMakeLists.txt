@@ -3,26 +3,22 @@ set(SOURCES
     network_creator.c
 )
 
-set(SHARED_BUILD TRUE)
+add_library(network_dependencies INTERFACE)
 
-add_library(network SHARED ${SOURCES})
-
-set_target_properties(network PROPERTIES
-    OUTPUT_NAME "network"
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-)
-
-# message(STATUS "Building static version of the network library")
-# add_library(network ${SOURCES})
-
-target_link_libraries(network
-    PRIVATE
+target_link_libraries(network_dependencies
+    INTERFACE
         neuron
         utils
 )
 
+add_library(network OBJECT ${SOURCES})
+
+set_property(TARGET network PROPERTY POSITION_INDEPENDENT_CODE 1)   # shared libraries need PIC
+
+target_link_libraries(network PUBLIC network_dependencies)
+
 target_include_directories(network
-    PUBLIC
+    PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -39,14 +35,19 @@ target_compile_options(network
         -shared
         -g
         -lws2_32
-        # -m32    # Generate 32-bit dll
         -fstack-protector-all
-        -Wl,--out-implib,libnetwork.a     # Also create a linkable library
 )
 
-# target_compile_definitions(network
-#     PRIVATE
-#         BCKP_DIR_PATH="${PROJECT_SOURCE_DIR}/backups"
-# )
+# shared and static libraries built from the same object files
+add_library(network_shared SHARED $<TARGET_OBJECTS:network>)
+add_library(network_static STATIC $<TARGET_OBJECTS:network>)
 
-# target_compile_definitions(network PRIVATE CMAKE_EXPORT_COMPILE_COMMANDS=1)
+target_link_libraries(network_shared PUBLIC network_dependencies)
+target_link_libraries(network_static PUBLIC network_dependencies)
+
+set_target_properties(network_shared PROPERTIES
+    OUTPUT_NAME "network"
+    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
+)
+
+target_include_directories(network_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

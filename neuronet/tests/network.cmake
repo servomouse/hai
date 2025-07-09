@@ -2,14 +2,13 @@ add_executable(network_linear_test network_linear_test.c)
 
 target_link_libraries(network_linear_test
     PRIVATE
-        network
+        network_static
         neuron
         utils
 )
 
 target_include_directories(network_linear_test
     PRIVATE
-        # ${TESTS_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
