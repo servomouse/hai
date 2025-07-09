@@ -1,11 +1,10 @@
-#include <time.h>
+// #include <time.h>
 #include "network.h"
 #include "utils.h"
 #include "mymath.h"
 
 uint32_t net_maps[] = {
     // Network_config:
-    0,  // Num micronets
     40, // Main net description size
     4,  // Net num inputs
     8,  // Net size
@@ -37,13 +36,13 @@ void test_evolution(void) {
     double *outputs = network_get_outputs(inputs);
 
     printf("Outputs: [%f, %f, %f, %f]\n", outputs[0], outputs[1], outputs[2], outputs[3]);
-    net_coeffs_t *coeffs = network_get_coeffs();
+    // net_coeffs_t *coeffs = network_get_coeffs();
     printf("Network coeffs:\n");
-    for(uint32_t i=0; i<coeffs->num_items; i++) {
-        printf("%d: %s\n", i, coeffs->items[i]);
-        free(coeffs->items[i]);
+    for(uint32_t i=0; i<4; i++) {
+        char *coeffs = network_get_coeffs(i);
+        printf("%d: %s\n", i, coeffs);
+        free(coeffs);
     }
-    free(coeffs);
 
     double error = get_error(4, outputs, expected_outputs);
     printf("Initial error: %f\n", error);
@@ -62,13 +61,13 @@ void test_evolution(void) {
 
     outputs = network_get_outputs(inputs);
     printf("Outputs: [%f, %f, %f, %f]\n", outputs[0], outputs[1], outputs[2], outputs[3]);
-    coeffs = network_get_coeffs();
+    // coeffs = network_get_coeffs();
     printf("Network coeffs:\n");
-    for(uint32_t i=0; i<coeffs->num_items; i++) {
-        printf("%d: %s\n", i, coeffs->items[i]);
-        free(coeffs->items[i]);
+    for(uint32_t i=0; i<4; i++) {
+        char *coeffs = network_get_coeffs(i);
+        printf("%d: %s\n", i, coeffs);
+        free(coeffs);
     }
-    free(coeffs);
     if(counter != 124) {
         RAISE("Error: counter value (%d) isn't correct!\n", counter);
     }
@@ -120,7 +119,7 @@ int main(void) {
     // uint32_t seed = time(NULL);
     // printf("Seed: %d\n", seed);
     uint32_t seed = 1751501246;
-    srand(seed);
+    network_init_rng(seed);
     network_create(net_maps);
     test_evolution();
     test_coeffs_set_get();
