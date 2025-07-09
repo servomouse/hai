@@ -3,6 +3,7 @@ import numpy as np
 import os
 from check_dll import check_compatibility
 from dll_loader import get_dll_function
+from network import get_network_arch, NeuronTypes
 
 network_dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
 
@@ -16,24 +17,16 @@ dll_interface = {
     "network_free":         "void foo(void *)",
 }
 
-network_arch = [
-    # Network_config:
-    # 0,  # Num micronets
-    40, # Main net description size
-    4,  # Net num inputs
-    8,  # Net size
-    4,  # Net num outputs
-    4,  # Net output indices:
-    5,
-    6,
-    7,
-    # Neurons:
-    #  Size    idx num_inputs  type    indices:
-        8,      4,  4,          0,      0, 1, 2, 3,
-        8,      5,  4,          0,      0, 1, 2, 3,
-        8,      6,  4,          0,      0, 1, 2, 3,
-        8,      7,  4,          0,      0, 1, 2, 3,
-]
+network_architecture = {
+    "num_inputs": 4,
+    "neurons": [
+        {"idx": 4, "type": NeuronTypes.Linear, "input_indices": [0, 1, 2, 3]},
+        {"idx": 5, "type": NeuronTypes.Linear, "input_indices": [0, 1, 2, 3]},
+        {"idx": 6, "type": NeuronTypes.Linear, "input_indices": [0, 1, 2, 3]},
+        {"idx": 7, "type": NeuronTypes.Linear, "input_indices": [0, 1, 2, 3]},
+    ],
+    "output_indices": [4, 5, 6, 7]
+}
 
 class NetworkInterface:
     def __init__(self, dll_path, net_arch_path):
@@ -43,7 +36,7 @@ class NetworkInterface:
         check_compatibility(network_dll_path)
 
         self.network = ctypes.CDLL(dll_path)
-        self.net_arch = network_arch
+        self.net_arch = net_arch_path
 
         for function, signature in dll_interface.items():
             get_dll_function(self.network, function, signature)
@@ -88,20 +81,24 @@ def main():
         [-0.171120, 0.210090, 0.009990, 0.852520, -0.512110]
     ]
     net_inputs = [0.2, -0.2, 0.2, -0.2]
-    network = NetworkInterface(network_dll_path, 'path/to/net_arch.txt')
+
+    network = NetworkInterface(
+        network_dll_path,
+        get_network_arch(**network_architecture)
+    )
     outputs = network.get_outputs(net_inputs)
     print(f"Network outputs: {outputs}")
     print("Network coeffitients:")
     for i in range(4):
         coeffs = network.get_coeffs(i)
         print(f"\t{i}: {coeffs}")
-    network.mutate(0.1)
-    outputs = network.get_outputs(net_inputs)
-    print(f"Network outputs: {outputs}")
-    print("Network coeffitients:")
-    for i in range(4):
-        coeffs = network.get_coeffs(i)
-        print(f"\t{i}: {coeffs}")
+    # network.mutate(0.1)
+    # outputs = network.get_outputs(net_inputs)
+    # print(f"Network outputs: {outputs}")
+    # print("Network coeffitients:")
+    # for i in range(4):
+    #     coeffs = network.get_coeffs(i)
+    #     print(f"\t{i}: {coeffs}")
 
     for i in range(len(final_coeffs)):
         network.set_coeffs(i, final_coeffs[i])
@@ -112,7 +109,6 @@ def main():
     for i in range(4):
         coeffs = network.get_coeffs(i)
         print(f"\t{i}: {coeffs}")
-    # network.set_coeffs(0, [0.1, -0.2, 0.3])
 
 
 if __name__ == "__main__":
