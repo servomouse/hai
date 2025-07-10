@@ -9,9 +9,7 @@ c_types = {
     "size_t": ctypes.c_size_t,
     "double": ctypes.c_double,
     "char": ctypes.c_char,
-    # "char*": ctypes.c_char_p,
 }
-# ctypes.POINTER(ctypes.c_double)
 
 def get_dll_function(dll_object, foo_name, signature):
     """
@@ -41,7 +39,7 @@ def get_dll_function(dll_object, foo_name, signature):
     if foo_args == [None]:
         foo_args = None
     
-    print(f"{ret_type}, {foo_name}, {foo_args}")
+    # print(f"{ret_type}, {foo_name}, {foo_args}")
     foo_attr = getattr(dll_object, foo_name)
     foo_attr.argtypes = foo_args
     foo_attr.restype = ret_type
