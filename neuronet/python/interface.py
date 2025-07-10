@@ -1,9 +1,9 @@
 import ctypes
 import numpy as np
 import os
-from check_dll import check_compatibility
-from dll_loader import get_dll_function
-from network import get_network_arch, NeuronTypes
+from .check_dll import check_compatibility
+from .dll_loader import get_dll_function
+from .network import get_network_arch, NeuronTypes
 
 network_dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
 
@@ -29,14 +29,15 @@ network_architecture = {
 }
 
 class NetworkInterface:
-    def __init__(self, dll_path, net_arch_path):
+    def __init__(self, net_arch):
+        self.dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
         # Check the dll"
-        if not os.path.isfile(dll_path):
-            raise Exception(f"Error: cannot open file ({dll_path})")
-        check_compatibility(network_dll_path)
+        if not os.path.isfile(self.dll_path):
+            raise Exception(f"Error: cannot open file ({self.dll_path})")
+        check_compatibility(self.dll_path)
 
-        self.network = ctypes.CDLL(dll_path)
-        self.net_arch = net_arch_path
+        self.network = ctypes.CDLL(self.dll_path)
+        self.net_arch = net_arch
 
         for function, signature in dll_interface.items():
             get_dll_function(self.network, function, signature)
@@ -82,10 +83,7 @@ def main():
     ]
     net_inputs = [0.2, -0.2, 0.2, -0.2]
 
-    network = NetworkInterface(
-        network_dll_path,
-        get_network_arch(**network_architecture)
-    )
+    network = NetworkInterface(get_network_arch(**network_architecture))
     outputs = network.get_outputs(net_inputs)
     print(f"Network outputs: {outputs}")
     print("Network coeffitients:")
