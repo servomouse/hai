@@ -2,6 +2,7 @@ set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/neurons.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/network.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/python_tests.cmake)
 
 add_custom_target(runtests
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure  # --rerun-failed
@@ -29,4 +30,5 @@ endfunction()
 
 create_tests(
     network_linear_test
+    py_tests
 )
