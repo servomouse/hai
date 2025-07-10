@@ -30,5 +30,5 @@ endfunction()
 
 create_tests(
     network_linear_test
-    py_tests
+    python_tests
 )
