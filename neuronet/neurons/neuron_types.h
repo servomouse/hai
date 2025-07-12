@@ -17,7 +17,7 @@ typedef struct {
     double *inputs;
     uint32_t *input_indices;
     uint32_t num_inputs;
-    double *coeffs;
+    void *coeffs;
     uint32_t num_coeffs;
     // Mutations feature:
     double *coeffs_backup;

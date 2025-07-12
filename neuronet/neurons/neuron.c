@@ -30,25 +30,36 @@ void neuron_set_input_idx(neuron_t *n, uint32_t input_idx, uint32_t array_idx) {
     n->input_indices[input_idx] = array_idx;
 }
 
-void neuron_set_coeff(neuron_t *n, uint32_t idx, double value) {
-    if(idx >= n->num_coeffs)
-        RAISE("Error: Index %d is greater than the number of coefficients %d\n", idx, n->num_coeffs);
-    n->coeffs[idx] = value;
-}
-
-void neuron_set_coeffs(neuron_t *n, double *values) {
-    for(uint32_t i=0; i<n->num_coeffs; i++) {
-        n->coeffs[i] = values[i];
+char *neuron_get_coeffs(neuron_t *n) {
+    switch(n->type) {
+        case Linear:
+            return neuron_linear_get_coeffs(n);
+            break;
+        case Poly:
+            return neuron_poly_get_coeffs(n);
+            break;
+        case Pattern:
+            return neuron_pattern_get_coeffs(n);
+            break;
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n->type);
     }
 }
 
-char * neuron_get_coeffs(neuron_t *n) {
-    char *coeffs = doubles_to_string(n->coeffs, n->num_coeffs);
-    return coeffs;
-}
-
-double neuron_get_coeff(neuron_t *n, uint32_t idx) {
-    return n->coeffs[idx];
+void neuron_set_coeffs(neuron_t *n, double *values) {
+    switch(n->type) {
+        case Linear:
+            neuron_linear_set_coeffs(n, values);
+            break;
+        case Poly:
+            neuron_poly_set_coeffs(n, values);
+            break;
+        case Pattern:
+            neuron_pattern_set_coeffs(n, values);
+            break;
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n->type);
+    }
 }
 
 double neuron_get_output(neuron_t *n, double *inputs) {
@@ -73,4 +84,63 @@ double activation_func(double value) {
     if(value <= -1.0)
         return -1.0;
     return value;
+}
+
+double control_coeffs_func(double coeff) {
+    if(coeff > 1.0) {
+        return 1.0;
+    } else if(coeff < -1.0) {
+        return -1.0;
+    } else {
+        return coeff;
+    }
+}
+// The opposite is neuron_rollback
+void neuron_stash_state(neuron_t * n) {
+    switch(n->type) {
+        case Linear:
+            neuron_linear_stash_state(n);
+            break;
+        case Poly:
+            neuron_poly_stash_state(n);
+            break;
+        case Pattern:
+            neuron_pattern_stash_state(n);
+            break;
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n->type);
+    }
+}
+
+void neuron_mutate(neuron_t * n, double mutation_step) {
+    switch(n->type) {
+        case Linear:
+            neuron_linear_mutate(n, mutation_step);
+            break;
+        case Poly:
+            neuron_poly_mutate(n, mutation_step);
+            break;
+        case Pattern:
+            neuron_pattern_mutate(n, mutation_step);
+            break;
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n->type);
+    }
+}
+
+// The opposite is neuron_stash_state
+void neuron_rollback(neuron_t * n) {
+    switch(n->type) {
+        case Linear:
+            neuron_linear_rollback(n);
+            break;
+        case Poly:
+            neuron_poly_rollback(n);
+            break;
+        case Pattern:
+            neuron_pattern_rollback(n);
+            break;
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n->type);
+    }
 }

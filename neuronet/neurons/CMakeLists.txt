@@ -1,6 +1,5 @@
 set(SOURCES
     neuron.c
-    neuron_mutations.c
 )
 
 add_library(neuron ${SOURCES})
