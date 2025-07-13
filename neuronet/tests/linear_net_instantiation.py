@@ -31,6 +31,7 @@ def get_error(target, result):
 
 class TestClassName(unittest.TestCase):
     def test_method(self):
+        print("Testing linear network instantiation")
         final_coeffs = [
             [-0.371300, -0.438380, -0.519600, 0.444090, 0.280620],
             [-0.957770, 0.977300, 0.133530, -0.596600, -0.059860],
