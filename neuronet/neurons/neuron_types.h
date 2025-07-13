@@ -14,6 +14,11 @@ enum neuron_type {
 };
 
 typedef struct {
+    double error_sum;
+    uint32_t counter;
+} backprop_error_t;
+
+typedef struct {
     double *inputs;
     uint32_t *input_indices;
     uint32_t num_inputs;
@@ -23,6 +28,7 @@ typedef struct {
     double *coeffs_backup;
     double *coeffs_delta;
     // !Mutations feature
+    double weighted_sum;    // Needed for backpropagation
     double output;
     neuron_type_t type;
 } neuron_t;

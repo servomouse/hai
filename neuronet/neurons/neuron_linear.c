@@ -16,11 +16,11 @@ void neuron_linear_create(neuron_t *n, uint32_t num_inputs) {
 }
 
 double neuron_linear_get_output(neuron_t *n) {
-    n->output = ((double*)n->coeffs)[n->num_coeffs-1]; // BIAS
+    n->weighted_sum = ((double*)n->coeffs)[n->num_coeffs-1]; // BIAS
     for(uint32_t i=0; i<n->num_inputs; i++) {
-        n->output += n->inputs[i] * ((double*)n->coeffs)[i];
+        n->weighted_sum += n->inputs[i] * ((double*)n->coeffs)[i];
     }
-    n->output = activation_func(n->output);
+    n->output = activation_func(n->weighted_sum);
     return n->output;
 }
 
@@ -61,17 +61,20 @@ void neuron_linear_rollback(neuron_t * n) {
 
 /* BACKPROPAGATION */
 
-void neuron_backpropagate(neuron_t *n, double error_from_previous_layer, double *input_errors) {
+void neuron_linear_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_idx) {
     double learning_rate = 0.01;
-    double derivative = 1.0 - pow(tanh(n->output), 2);  // Derivative of the activation function
-    double output_error = error_from_previous_layer * derivative;
+    double derivative = 1.0 - pow(tanh(n->weighted_sum), 2);  // Derivative of the activation function
+    double output_error = (errors[self_idx].error_sum / errors[self_idx].counter) * derivative;
+    errors[self_idx].error_sum = 0;
+    errors[self_idx].counter = 0;
 
     for (uint32_t i = 0; i < n->num_inputs; i++) {
-        input_errors[i] = output_error * ((double*)n->coeffs)[i];
+        errors[n->input_indices[i]].error_sum = output_error * ((double*)n->coeffs)[i];
+        errors[n->input_indices[i]].counter ++;
 
         double delta = output_error * n->inputs[i];
         ((double*)n->coeffs)[i] += learning_rate * delta;
     }
-    double bias_delta = output_error * 1.0; // Update the bias
+    double bias_delta = output_error; // Update the bias
     ((double*)n->coeffs)[n->num_coeffs - 1] += learning_rate * bias_delta;
 }

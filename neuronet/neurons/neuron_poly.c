@@ -31,3 +31,9 @@ void neuron_poly_mutate(neuron_t * n, double mutation_step) {
 void neuron_poly_rollback(neuron_t * n) {
     RAISE("Error: Poly neuron not implemented!\n");
 }
+
+/* BACKPROPAGATION */
+
+void neuron_poly_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_idx) {
+    RAISE("Error: Poly neuron not implemented!\n");
+}

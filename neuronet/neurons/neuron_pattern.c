@@ -31,3 +31,9 @@ void neuron_pattern_mutate(neuron_t * n, double mutation_step) {
 void neuron_pattern_rollback(neuron_t * n) {
     RAISE("Error: Pattern neuron not implemented!\n");
 }
+
+/* BACKPROPAGATION */
+
+void neuron_pattern_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_idx) {
+    RAISE("Error: Pattern neuron not implemented!\n");
+}
