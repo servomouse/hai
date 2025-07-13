@@ -39,7 +39,6 @@ class TestClassName(unittest.TestCase):
 
         network = NetworkInterface(get_network_arch(**network_architecture))
         network.init_rng(rng_seed)
-        outputs = network.get_outputs(net_inputs)
         error = get_error(expected_outputs, network.get_outputs(net_inputs))
         counter = 0
         while error > error_threshold:
