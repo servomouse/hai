@@ -11,6 +11,7 @@ dll_interface = {
     "network_create":       "void foo(uint32_t *)",
     "network_get_outputs":  "double * foo(double *)",
     "network_mutate":       "void foo(double)",
+    "network_init_rng":     "void foo(size_t)", # void network_init_rng(size_t seed)
     "network_rollback":     "void foo(void)",
     "network_get_coeffs":   "char * foo(uint32_t)",
     "network_set_coeffs":   "void foo(uint32_t, double *)",
@@ -53,6 +54,9 @@ class NetworkInterface:
         for i in range(len(inputs)):  # Adjust the range as needed
             output_list.append(output_ptr[i])
         return output_list
+
+    def init_rng(self, rng_seed):
+        self.network.network_init_rng(ctypes.c_size_t(rng_seed))
 
     def mutate(self, mutation_step):
         if 0 <= mutation_step <= 1:
