@@ -30,5 +30,6 @@ endfunction()
 
 create_tests(
     network_linear_test
-    python_tests
+    linear_net_instantiation
+    linear_net_evolution
 )
