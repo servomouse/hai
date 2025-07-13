@@ -19,6 +19,16 @@ network_architecture = {
     "output_indices": [4, 5, 6, 7]
 }
 
+
+def get_error(target, result):
+    if len(target) != len(result):
+        raise Exception(f"Error: target vs result outputs length mismatch!")
+    error = 0
+    for i in range(len(target)):
+        error += (target[i] - result[i])**2
+    return error / len(target)
+
+
 class TestClassName(unittest.TestCase):
     def test_method(self):
         final_coeffs = [
@@ -28,32 +38,28 @@ class TestClassName(unittest.TestCase):
             [-0.171120, 0.210090, 0.009990, 0.852520, -0.512110]
         ]
         net_inputs = [0.2, -0.2, 0.2, -0.2]
+        expected_outputs = [0.1, -0.3, 0.5, -0.7]
 
         network = NetworkInterface(get_network_arch(**network_architecture))
         outputs = network.get_outputs(net_inputs)
-        print(f"Network outputs: {outputs}")
-        print("Network coeffitients:")
         for i in range(4):
             coeffs = network.get_coeffs(i)
-            print(f"\t{i}: {coeffs}")
-        # network.mutate(0.1)
-        # outputs = network.get_outputs(net_inputs)
-        # print(f"Network outputs: {outputs}")
-        # print("Network coeffitients:")
-        # for i in range(4):
-        #     coeffs = network.get_coeffs(i)
-        #     print(f"\t{i}: {coeffs}")
+            coeffs = [float(c) for c in coeffs[1:-1].split(", ")]
+            for c in range(len(coeffs)):
+                self.assertNotEqual(coeffs[c], final_coeffs[i][c])
 
         for i in range(len(final_coeffs)):
             network.set_coeffs(i, final_coeffs[i])
 
         outputs = network.get_outputs(net_inputs)
-        print(f"Network outputs: {outputs}")
-        print("Network coeffitients:")
         for i in range(4):
             coeffs = network.get_coeffs(i)
-            print(f"\t{i}: {coeffs}")
-        self.assertEqual(1, 1)
+            coeffs = [float(c) for c in coeffs[1:-1].split(", ")]
+            for c in range(len(coeffs)):
+                self.assertEqual(coeffs[c], final_coeffs[i][c])
+        error = get_error(expected_outputs, outputs)
+        self.assertGreater(error, 0.0008)
+        self.assertLess(error, 0.0009)
 
 
 if __name__ == "__main__":
