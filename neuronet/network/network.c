@@ -6,6 +6,7 @@
 
 network_t *network;
 
+/* Network is represented as a 1d array of neurons, first neurons are expected to be inputs, the last neurons are outputs */
 DLL_PREFIX
 void network_create(uint32_t net_arch[]) {
     network = unpack_network_description(net_arch);
@@ -62,4 +63,20 @@ void network_free(void *ptr) {
 DLL_PREFIX
 void network_init_rng(size_t seed) {
     srand(seed);
+}
+
+DLL_PREFIX
+void network_backpropagation(double *errors) {
+    for(uint32_t i=0; i<network->num_outputs; i++) {    // Set initial errors
+        uint32_t idx = network->output_indices[i];
+        network->bp_errors[idx].error_sum += errors[i];
+        network->bp_errors[idx].counter ++;
+    }
+    for(uint32_t i=network->size-1; i>=network->num_inputs; i--) {  // network[:num_inputs] aren't real neurons, so skip them
+        neuron_backpropagate(&network->neurons[i-network->num_inputs], network->bp_errors, i);
+    }
+    for(uint32_t i=0; i<network->num_inputs; i++) { // Null-out pseudo-neurons to keep the system clean
+        network->bp_errors[i].error_sum = 0;
+        network->bp_errors[i].counter = 0;
+    }
 }

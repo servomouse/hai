@@ -8,14 +8,15 @@ from .network import get_network_arch, NeuronTypes
 network_dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
 
 dll_interface = {
-    "network_create":       "void foo(uint32_t *)",
-    "network_get_outputs":  "double * foo(double *)",
-    "network_mutate":       "void foo(double)",
-    "network_init_rng":     "void foo(size_t)", # void network_init_rng(size_t seed)
-    "network_rollback":     "void foo(void)",
-    "network_get_coeffs":   "char * foo(uint32_t)",
-    "network_set_coeffs":   "void foo(uint32_t, double *)",
-    "network_free":         "void foo(void *)",
+    "network_create":           "void foo(uint32_t *)",
+    "network_get_outputs":      "double * foo(double *)",
+    "network_mutate":           "void foo(double)",
+    "network_init_rng":         "void foo(size_t)",
+    "network_rollback":         "void foo(void)",
+    "network_get_coeffs":       "char * foo(uint32_t)",
+    "network_set_coeffs":       "void foo(uint32_t, double *)",
+    "network_free":             "void foo(void *)",
+    "network_backpropagation":  "void foo(double *)",
 }
 
 network_architecture = {

@@ -22,6 +22,7 @@ typedef struct network_t {
     uint32_t num_outputs;
     uint32_t size;
     double *arr;
+    backprop_error_t *bp_errors;    // Errors for back propagation
     neuron_t *neurons;
     uint32_t *output_indices;
     double *outputs;
