@@ -82,7 +82,7 @@ network_t * parse_net_map(uint32_t *data) {
     net->num_neurons = data[NET_SIZE] - data[NET_NUM_INPUTS];
     net->num_outputs = data[NET_NUM_OUTPUTS];
     net->size = data[NET_SIZE];
-    printf("Network configuration: num_inputs: %d, net_size: %d, num_outputs: %d\n", net->num_inputs, net->size, net->num_outputs);
+    // printf("Network configuration: num_inputs: %d, net_size: %d, num_outputs: %d\n", net->num_inputs, net->size, net->num_outputs);
     net->arr = (double*)calloc(net->size, sizeof(double));
     net->neurons = (neuron_t*)calloc(net->num_neurons, sizeof(neuron_t));
     net->output_indices = (uint32_t*)calloc(net->num_outputs, sizeof(uint32_t));

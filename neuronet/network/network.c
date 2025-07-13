@@ -48,7 +48,7 @@ DLL_PREFIX
 void network_set_coeffs(uint32_t idx, double *values) {
     if(idx >= network->num_neurons)
         RAISE("Error: idx is outside of the array: idx = %d, num_neurons: %d\n", idx, network->num_neurons);
-    printf("Setting coeffs for the neuron %d\n", idx);
+    // printf("Setting coeffs for the neuron %d\n", idx);
     neuron_set_coeffs(&network->neurons[idx], values);
 }
 
