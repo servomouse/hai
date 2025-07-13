@@ -58,3 +58,20 @@ void neuron_linear_rollback(neuron_t * n) {
         ((double*)n->coeffs)[i] = ((double*)n->coeffs_backup)[i];
     }
 }
+
+/* BACKPROPAGATION */
+
+void neuron_backpropagate(neuron_t *n, double error_from_previous_layer, double *input_errors) {
+    double learning_rate = 0.01;
+    double derivative = 1.0 - pow(tanh(n->output), 2);  // Derivative of the activation function
+    double output_error = error_from_previous_layer * derivative;
+
+    for (uint32_t i = 0; i < n->num_inputs; i++) {
+        input_errors[i] = output_error * ((double*)n->coeffs)[i];
+
+        double delta = output_error * n->inputs[i];
+        ((double*)n->coeffs)[i] += learning_rate * delta;
+    }
+    double bias_delta = output_error * 1.0; // Update the bias
+    ((double*)n->coeffs)[n->num_coeffs - 1] += learning_rate * bias_delta;
+}
