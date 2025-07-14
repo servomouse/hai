@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from python.interface import NetworkInterface
+from python.interface import NetworkInterface, get_network_error
 from python.network import get_network_arch, NeuronTypes
 
 
@@ -18,15 +18,6 @@ network_architecture = {
     ],
     "output_indices": [4, 5, 6, 7]
 }
-
-
-def get_error(target, result):
-    if len(target) != len(result):
-        raise Exception(f"Error: target vs result outputs length mismatch!")
-    error = 0
-    for i in range(len(target)):
-        error += (target[i] - result[i])**2
-    return error / len(target)
 
 
 class TestClassName(unittest.TestCase):
@@ -58,7 +49,7 @@ class TestClassName(unittest.TestCase):
             coeffs = [float(c) for c in coeffs[1:-1].split(", ")]
             for c in range(len(coeffs)):
                 self.assertEqual(coeffs[c], final_coeffs[i][c])
-        error = get_error(expected_outputs, outputs)
+        error = get_network_error(expected_outputs, outputs)
         self.assertGreater(error, 0.0008)
         self.assertLess(error, 0.0009)
 
