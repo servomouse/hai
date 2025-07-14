@@ -30,6 +30,25 @@ network_architecture = {
     "output_indices": [4, 5, 6, 7]
 }
 
+
+def get_network_error(target, result):
+    if len(target) != len(result):
+        raise Exception(f"Error: target vs result outputs length mismatch!")
+    error = 0
+    for i in range(len(target)):
+        error += (target[i] - result[i])**2
+    return error / len(target)
+
+
+def get_network_individual_errors(target, result):
+    """ Returns an array with errors of each output """
+    if len(target) != len(result):
+        raise Exception(f"Error: target vs result outputs length mismatch!")
+    errors = []
+    for i in range(len(target)):
+        errors[i] = (target[i] - result[i])**2
+    return errors
+
 class NetworkInterface:
     def __init__(self, net_arch):
         self.dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
@@ -77,6 +96,10 @@ class NetworkInterface:
     def set_coeffs(self, idx, values):
         values_array = (ctypes.c_double * len(values))(*values)
         self.network.network_set_coeffs(ctypes.c_uint32(idx), values_array)
+    
+    def backpropagation(self, errors):
+        errors_array = (ctypes.c_double * len(errors))(*errors)
+        self.network.network_backpropagation(errors_array)
 
 
 def main():
