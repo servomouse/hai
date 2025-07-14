@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from python.interface import NetworkInterface
+from python.interface import NetworkInterface, get_network_error
 from python.network import get_network_arch, NeuronTypes
 
 
@@ -20,15 +20,6 @@ network_architecture = {
 }
 
 
-def get_error(target, result):
-    if len(target) != len(result):
-        raise Exception(f"Error: target vs result outputs length mismatch!")
-    error = 0
-    for i in range(len(target)):
-        error += (target[i] - result[i])**2
-    return error / len(target)
-
-
 class TestClassName(unittest.TestCase):
     def test_evolution(self):
         print("Testing linear network evolution")
@@ -39,11 +30,11 @@ class TestClassName(unittest.TestCase):
 
         network = NetworkInterface(get_network_arch(**network_architecture))
         network.init_rng(rng_seed)
-        error = get_error(expected_outputs, network.get_outputs(net_inputs))
+        error = get_network_error(expected_outputs, network.get_outputs(net_inputs))
         counter = 0
         while error > error_threshold:
             network.mutate(0.1)
-            new_error = get_error(expected_outputs, network.get_outputs(net_inputs))
+            new_error = get_network_error(expected_outputs, network.get_outputs(net_inputs))
             if new_error > error:
                 network.rollback()
             elif new_error < error:
@@ -51,7 +42,7 @@ class TestClassName(unittest.TestCase):
             counter += 1
             self.assertLess(counter, 1000)
 
-        error = get_error(expected_outputs, network.get_outputs(net_inputs))
+        error = get_network_error(expected_outputs, network.get_outputs(net_inputs))
         self.assertLess(error, error_threshold)
 
 
