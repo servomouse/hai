@@ -25,21 +25,29 @@ class TestClassName(unittest.TestCase):
         print("Testing linear network evolution")
         net_inputs = [0.2, -0.2, 0.2, -0.2]
         expected_outputs = [0.1, -0.3, 0.5, -0.7]
+        rng_seed = 1751501246
 
         network = NetworkInterface(get_network_arch(**network_architecture))
+        network.init_rng(rng_seed)  # Use a seed for consistency
         outputs = network.get_outputs(net_inputs)
         error = get_network_error(expected_outputs, outputs)
         individual_errors = get_network_individual_errors(expected_outputs, outputs)
         print(f"Initial error: {error}, individual errors: {individual_errors}")
 
-        network.backpropagation(individual_errors)
+        counter = 0
+        self.assertGreater(error, 0.5)
+        while counter < 1000:
+            network.backpropagation(individual_errors)
+            network.backprop_update_weights(0.01)
 
-        outputs = network.get_outputs(net_inputs)
-        error = get_network_error(expected_outputs, outputs)
-        individual_errors = get_network_individual_errors(expected_outputs, outputs)
-        print(f"Initial error: {error}, individual errors: {individual_errors}")
+            outputs = network.get_outputs(net_inputs)
+            error = get_network_error(expected_outputs, outputs)
+            individual_errors = get_network_individual_errors(expected_outputs, outputs)
+            counter += 1
 
-        self.assertLess(0, 1)
+        print(f"Final error: {error}, individual errors: {individual_errors}")
+
+        self.assertLess(error, 0.5)
 
 
 if __name__ == "__main__":

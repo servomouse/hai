@@ -5,6 +5,7 @@ set(Python3_EXECUTABLE "${CMAKE_SOURCE_DIR}/myenv/Scripts/python")
 set(PYTHON_TEST_FILES
     linear_net_instantiation
     linear_net_evolution
+    linear_net_backpropagation
 )
 
 foreach(TEST_NAME ${PYTHON_TEST_FILES})
