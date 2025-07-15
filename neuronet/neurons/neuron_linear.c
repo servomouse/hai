@@ -10,6 +10,7 @@ void neuron_linear_create(neuron_t *n, uint32_t num_inputs) {
     n->coeffs = calloc(n->num_coeffs, sizeof(double));
     n->coeffs_backup = calloc(n->num_coeffs, sizeof(double));
     n->coeffs_delta = calloc(n->num_coeffs, sizeof(double));
+    n->bp_deltas = calloc(n->num_coeffs, sizeof(backprop_error_t));
     for(uint32_t i=0; i<n->num_coeffs; i++) {
         ((double*)n->coeffs)[i] = random_double(-1.0, 1.0);
     }
@@ -62,7 +63,6 @@ void neuron_linear_rollback(neuron_t * n) {
 /* BACKPROPAGATION */
 
 void neuron_linear_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_idx) {
-    double learning_rate = 0.01;
     double derivative = 1.0 - pow(tanh(n->weighted_sum), 2);  // Derivative of the activation function
     double output_error = (errors[self_idx].error_sum / errors[self_idx].counter) * derivative;
     errors[self_idx].error_sum = 0;
@@ -72,9 +72,23 @@ void neuron_linear_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t
         errors[n->input_indices[i]].error_sum = output_error * ((double*)n->coeffs)[i];
         errors[n->input_indices[i]].counter ++;
 
-        double delta = output_error * n->inputs[i];
-        ((double*)n->coeffs)[i] += learning_rate * delta;
+        n->bp_deltas[i].error_sum += output_error * n->inputs[i];
+        n->bp_deltas[i].counter ++;
     }
     double bias_delta = output_error; // Update the bias
-    ((double*)n->coeffs)[n->num_coeffs - 1] += learning_rate * bias_delta;
+    n->bp_deltas[n->num_coeffs - 1].error_sum += bias_delta;
+    n->bp_deltas[n->num_coeffs - 1].counter ++;
+}
+
+void neuron_linear_backprop_update_weights(neuron_t *n, double learning_rate) {
+    for (uint32_t i = 0; i < n->num_coeffs; i++) {
+        if(n->bp_deltas[i].counter == 0) {
+            n->bp_deltas[i].error_sum = 0;
+            continue;
+        }
+        double delta = n->bp_deltas[i].error_sum / n->bp_deltas[i].counter;
+        ((double*)n->coeffs)[i] += learning_rate * delta;
+        n->bp_deltas[i].error_sum = 0;
+        n->bp_deltas[i].counter = 0;
+    }
 }

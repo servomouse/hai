@@ -80,3 +80,14 @@ void network_backpropagation(double *errors) {
         network->bp_errors[i].counter = 0;
     }
 }
+
+DLL_PREFIX
+void network_backprop_update_weights(double learning_rate) {
+    for(uint32_t i=0; i<network->num_neurons; i++) {
+        neuron_backprop_update_weights(&network->neurons[i], learning_rate);
+    }
+    for(uint32_t i=0; i<network->num_inputs; i++) { // Null-out pseudo-neurons to keep the system clean
+        network->bp_errors[i].error_sum = 0;
+        network->bp_errors[i].counter = 0;
+    }
+}

@@ -160,3 +160,19 @@ void neuron_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_i
             RAISE("Error: Unknown neuron type: %d\n", n->type);
     }
 }
+
+void neuron_backprop_update_weights(neuron_t *n, double learning_rate) {
+    switch(n->type) {
+        case Linear:
+            neuron_linear_backprop_update_weights(n, learning_rate);
+            break;
+        case Poly:
+            neuron_poly_backprop_update_weights(n, learning_rate);
+            break;
+        case Pattern:
+            neuron_pattern_backprop_update_weights(n, learning_rate);
+            break;
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n->type);
+    }
+}

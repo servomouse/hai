@@ -22,3 +22,4 @@ void neuron_rollback(neuron_t * n);     // The opposite is neuron_stash_state
 // Backpropagation:
 
 void neuron_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_idx);
+void neuron_backprop_update_weights(neuron_t *n, double learning_rate);

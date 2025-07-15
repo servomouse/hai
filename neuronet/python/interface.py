@@ -8,15 +8,16 @@ from .network import get_network_arch, NeuronTypes
 network_dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
 
 dll_interface = {
-    "network_create":           "void foo(uint32_t *)",
-    "network_get_outputs":      "double * foo(double *)",
-    "network_mutate":           "void foo(double)",
-    "network_init_rng":         "void foo(size_t)",
-    "network_rollback":         "void foo(void)",
-    "network_get_coeffs":       "char * foo(uint32_t)",
-    "network_set_coeffs":       "void foo(uint32_t, double *)",
-    "network_free":             "void foo(void *)",
-    "network_backpropagation":  "void foo(double *)",
+    "network_create":                   "void foo(uint32_t *)",
+    "network_get_outputs":              "double * foo(double *)",
+    "network_mutate":                   "void foo(double)",
+    "network_init_rng":                 "void foo(size_t)",
+    "network_rollback":                 "void foo(void)",
+    "network_get_coeffs":               "char * foo(uint32_t)",
+    "network_set_coeffs":               "void foo(uint32_t, double *)",
+    "network_free":                     "void foo(void *)",
+    "network_backpropagation":          "void foo(double *)",
+    "network_backprop_update_weights":  "void foo(double)",
 }
 
 network_architecture = {
@@ -101,6 +102,9 @@ class NetworkInterface:
     def backpropagation(self, errors):
         errors_array = (ctypes.c_double * len(errors))(*errors)
         self.network.network_backpropagation(errors_array)
+    
+    def backprop_update_weights(self, learning_rate):
+        self.network.network_backprop_update_weights(ctypes.c_double(learning_rate))
 
 
 def main():

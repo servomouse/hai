@@ -27,6 +27,7 @@ typedef struct {
     // Mutations feature:
     double *coeffs_backup;
     double *coeffs_delta;
+    backprop_error_t *bp_deltas;
     // !Mutations feature
     double weighted_sum;    // Needed for backpropagation
     double output;

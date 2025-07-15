@@ -37,3 +37,7 @@ void neuron_poly_rollback(neuron_t * n) {
 void neuron_poly_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_idx) {
     RAISE("Error: Poly neuron not implemented!\n");
 }
+
+void neuron_poly_backprop_update_weights(neuron_t *n, double learning_rate) {
+    RAISE("Error: Poly neuron not implemented!\n");
+}
