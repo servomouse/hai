@@ -64,6 +64,9 @@ void neuron_linear_rollback(neuron_t * n) {
 
 void neuron_linear_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_idx) {
     double derivative = 1.0 - pow(tanh(n->weighted_sum), 2);  // Derivative of the activation function
+    if(0 == errors[self_idx].counter) {
+        printf("Neuron %d suspicious error: backpropagation error counter is 0. Is neuron connected to anything?", self_idx);
+    }
     double output_error = (errors[self_idx].error_sum / errors[self_idx].counter) * derivative;
     errors[self_idx].error_sum = 0;
     errors[self_idx].counter = 0;

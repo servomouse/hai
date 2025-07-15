@@ -75,10 +75,6 @@ void network_backpropagation(double *errors) {
     for(uint32_t i=network->size-1; i>=network->num_inputs; i--) {  // network[:num_inputs] aren't real neurons, so skip them
         neuron_backpropagate(&network->neurons[i-network->num_inputs], network->bp_errors, i);
     }
-    for(uint32_t i=0; i<network->num_inputs; i++) { // Null-out pseudo-neurons to keep the system clean
-        network->bp_errors[i].error_sum = 0;
-        network->bp_errors[i].counter = 0;
-    }
 }
 
 DLL_PREFIX
