@@ -36,7 +36,7 @@ class TestClassName(unittest.TestCase):
 
         counter = 0
         self.assertGreater(error, 0.5)
-        while counter < 1000:
+        while counter < 250:
             network.backpropagation(individual_errors)
             network.backprop_update_weights(0.01)
 
@@ -47,7 +47,7 @@ class TestClassName(unittest.TestCase):
 
         print(f"Final error: {error}, individual errors: {individual_errors}")
 
-        self.assertLess(error, 0.5)
+        self.assertLess(error, 0.0001)
 
 
 if __name__ == "__main__":
