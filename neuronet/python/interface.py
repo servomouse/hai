@@ -47,7 +47,7 @@ def get_network_individual_errors(target, result):
         raise Exception(f"Error: target vs result outputs length mismatch!")
     errors = []
     for i in range(len(target)):
-        errors.append((target[i] - result[i])**2)
+        errors.append(2 * (target[i] - result[i]))
     return errors
 
 
