@@ -78,18 +78,58 @@ def get_encoder_architecture():
         idx += l[0]*l[1]
     for i in range(len(layers_indices)):
         inputs = layers_indices[i-1]
+        if i == 0:
+            inputs.extend([a for a in range(encoder_architecture['num_inputs'])])
         for idx in layers_indices[i]:
             encoder_architecture['neurons'].append(
                 {"idx": idx, "type": NeuronTypes.Linear, "input_indices": inputs}
             )
     encoder_architecture['output_indices'] = layers_indices[-1]
-    # with open("output.txt", 'w') as f:
-    #     f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
-    #     f.write(f"neurons: [\n")
-    #     for n in encoder_architecture['neurons']:
-    #         f.write(f"\t{n},\n")
-    #     f.write(f"],\n")
-    #     f.write(f"output_indices: [{encoder_architecture['output_indices']}]\n")
+    with open("encoder_arch.txt", 'w') as f:
+        f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
+        f.write(f"neurons: [\n")
+        for n in encoder_architecture['neurons']:
+            f.write(f"\t{n},\n")
+        f.write(f"],\n")
+        f.write(f"output_indices: {encoder_architecture['output_indices']}\n")
+    return encoder_architecture
+
+def get_decoder_architecture():
+    encoder_architecture = {
+        "num_inputs": 16*16,
+        "neurons": [],
+        "output_indices": []
+    }
+    layers = [
+        [16, 16],
+        [16, 16],
+        [16, 16],
+        [16, 1],
+    ]
+    layers_indices = []
+    idx = encoder_architecture['num_inputs']
+    for l in layers:
+        indices = []
+        for i in range(idx, l[0]*l[1]+idx):
+            indices.append(i)
+        layers_indices.append(indices)
+        idx += l[0]*l[1]
+    for i in range(len(layers_indices)):
+        inputs = layers_indices[i-2] if i == 0 else layers_indices[i-1]
+        if i == 0:
+            inputs.extend([a for a in range(encoder_architecture['num_inputs'])])
+        for idx in layers_indices[i]:
+            encoder_architecture['neurons'].append(
+                {"idx": idx, "type": NeuronTypes.Linear, "input_indices": inputs}
+            )
+    encoder_architecture['output_indices'] = layers_indices[-1]
+    with open("decoder_arch.txt", 'w') as f:
+        f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
+        f.write(f"neurons: [\n")
+        for n in encoder_architecture['neurons']:
+            f.write(f"\t{n},\n")
+        f.write(f"],\n")
+        f.write(f"output_indices: {encoder_architecture['output_indices']}\n")
     return encoder_architecture
 
 
@@ -121,6 +161,7 @@ class TestClassName(unittest.TestCase):
 
         # print(f"Final error: {error}, individual errors: {individual_errors}")
         get_encoder_architecture()
+        get_decoder_architecture()
         self.assertLess(1, 2)
 
 
