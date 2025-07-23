@@ -8,6 +8,7 @@
 
 void network_create(uint32_t net_arch[]);
 double *network_get_outputs(double *inputs);
+void network_clean(void);
 void network_mutate(double mutation_step);  // mutation_step is a value between 0 and 1
 void network_rollback(void);
 void network_backpropagation(double *errors);

@@ -29,6 +29,13 @@ double * network_get_outputs(double *inputs) {
 }
 
 DLL_PREFIX
+void network_clean(void) {
+    for(uint32_t i=0; i<network->size; i++) {
+        network->arr[i] = 0;
+    }
+}
+
+DLL_PREFIX
 void network_mutate(double mutation_step) {
     network->mutated_neuron_idx = random_int(0, network->num_neurons);
     neuron_mutate(&network->neurons[network->mutated_neuron_idx], mutation_step);
@@ -38,6 +45,7 @@ DLL_PREFIX
 void network_rollback(void) {
     neuron_rollback(&network->neurons[network->mutated_neuron_idx]);
 }
+
 DLL_PREFIX
 char * network_get_coeffs(uint32_t idx) {
     if(idx >= network->num_neurons)
