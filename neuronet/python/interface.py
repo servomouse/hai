@@ -18,6 +18,7 @@ dll_interface = {
     "network_free":                     "void foo(void *)",
     "network_backpropagation":          "void foo(double *)",
     "network_backprop_update_weights":  "void foo(double)",
+    "network_clean":                    "void foo(void)",
 }
 
 network_architecture = {
@@ -37,7 +38,10 @@ def get_network_error(target, result):
         raise Exception(f"Error: target vs result outputs length mismatch!")
     error = 0
     for i in range(len(target)):
-        error += (target[i] - result[i])**2
+        if isinstance(target[i], list): # Process neasted arrays
+            error +=get_network_error(target[i], result[i])
+        else:
+            error += (target[i] - result[i])**2
     return error / len(target)
 
 
@@ -76,6 +80,9 @@ class NetworkInterface:
         for i in range(len(inputs)):  # Adjust the range as needed
             output_list.append(output_ptr[i])
         return output_list
+
+    def clean(self):
+        self.network.network_clean()
 
     def init_rng(self, rng_seed):
         self.network.network_init_rng(ctypes.c_size_t(rng_seed))
