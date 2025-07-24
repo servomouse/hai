@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from python.interface import NetworkInterface, get_network_error, get_network_individual_errors
 from python.network import get_network_arch, NeuronTypes
+from python.dll_loader import LoaderIface
 
 
 sentences = [
@@ -123,6 +124,67 @@ def random_binary_array(m, n):
 #     "output_indices": [4, 5, 6, 7]
 # }
 
+
+def save_arch_to_file(network_arch, filename):
+    with open(filename, 'w') as f:
+        f.write(f"num_inputs: {network_arch['num_inputs']},\n")
+        f.write(f"neurons: [\n")
+        for n in network_arch['neurons']:
+            f.write(f"\t{n},\n")
+        f.write(f"],\n")
+        f.write(f"output_indices: {network_arch['output_indices']}\n")
+
+
+def get_net_arch(arch):
+    # example_arch = [
+    #     {"size": 16, "type": "input", "inputs": None},
+    #     {"size": 16*16, "type": "hidden", "inputs": [0, 3]},
+    #     {"size": 16*16, "type": "hidden", "inputs": [1]},
+    #     {"size": 16*16, "type": "output", "inputs": [2]},
+    # ]
+    # arch = example_arch
+    net_arch = {
+        "num_inputs": 0,
+        "neurons": [],
+        "output_indices": []
+    }
+    # Calculate indices
+    indices = []
+    idx = 0
+    for layer in arch:
+        indices.append([i+idx for i in range(layer["size"])])
+        idx += layer["size"]
+        if layer["type"] == "output":
+            net_arch['output_indices'].extend(indices[-1])
+    # Calculate inputs indices
+    inputs = []
+    for i in range(len(arch)):
+        if arch[i]["inputs"] is None:
+            inputs.append([])
+        else:
+            temp = []
+            for a in arch[i]["inputs"]:
+                temp.extend(indices[a])
+            inputs.append(temp)
+
+    for i in range(len(arch)):
+        if arch[i]["type"] == "input":
+            net_arch['num_inputs'] += arch[i]["size"]
+        else:
+            for a in range(arch[i]["size"]):
+                net_arch['neurons'].append(
+                    {"idx": indices[i][a], "type": int(NeuronTypes.Linear), "input_indices": inputs[i]}
+                )
+    # with open("encoder_arch.txt", 'w') as f:
+    #     f.write(f"num_inputs: {net_arch['num_inputs']},\n")
+    #     f.write(f"neurons: [\n")
+    #     for n in net_arch['neurons']:
+    #         f.write(f"\t{n},\n")
+    #     f.write(f"],\n")
+    #     f.write(f"output_indices: {net_arch['output_indices']}\n")
+    return net_arch
+
+
 def get_encoder_architecture():
     encoder_architecture = {
         "num_inputs": 16,
@@ -151,13 +213,13 @@ def get_encoder_architecture():
                 {"idx": idx, "type": NeuronTypes.Linear, "input_indices": inputs}
             )
     encoder_architecture['output_indices'] = layers_indices[-1]
-    # with open("encoder_arch.txt", 'w') as f:
-    #     f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
-    #     f.write(f"neurons: [\n")
-    #     for n in encoder_architecture['neurons']:
-    #         f.write(f"\t{n},\n")
-    #     f.write(f"],\n")
-    #     f.write(f"output_indices: {encoder_architecture['output_indices']}\n")
+    with open("encoder_arch.txt", 'w') as f:
+        f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
+        f.write(f"neurons: [\n")
+        for n in encoder_architecture['neurons']:
+            f.write(f"\t{n},\n")
+        f.write(f"],\n")
+        f.write(f"output_indices: {encoder_architecture['output_indices']}\n")
     return encoder_architecture
 
 def get_decoder_architecture():
@@ -189,39 +251,71 @@ def get_decoder_architecture():
                 {"idx": idx, "type": NeuronTypes.Linear, "input_indices": inputs}
             )
     encoder_architecture['output_indices'] = layers_indices[-1]
-    # with open("decoder_arch.txt", 'w') as f:
-    #     f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
-    #     f.write(f"neurons: [\n")
-    #     for n in encoder_architecture['neurons']:
-    #         f.write(f"\t{n},\n")
-    #     f.write(f"],\n")
-    #     f.write(f"output_indices: {encoder_architecture['output_indices']}\n")
+    with open("decoder_arch.txt", 'w') as f:
+        f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
+        f.write(f"neurons: [\n")
+        for n in encoder_architecture['neurons']:
+            f.write(f"\t{n},\n")
+        f.write(f"],\n")
+        f.write(f"output_indices: {encoder_architecture['output_indices']}\n")
     return encoder_architecture
 
 
 class TestClassName(unittest.TestCase):
     def test_evolution(self):
-        # net_inputs = [0.2, -0.2, 0.2, -0.2]
-        # expected_outputs = [0.1, -0.3, 0.5, -0.7]
+        encoder_arch = get_net_arch([
+            {"size": 16, "type": "input", "inputs": None},
+            {"size": 16*16, "type": "hidden", "inputs": [0, 3]},
+            {"size": 16*16, "type": "hidden", "inputs": [1]},
+            {"size": 16*16, "type": "output", "inputs": [2]},
+        ])
+        decoder_arch = get_net_arch([
+            {"size": 16*16, "type": "input", "inputs": None},
+            {"size": 16*16, "type": "hidden", "inputs": [0, 3]},
+            {"size": 16*16, "type": "hidden", "inputs": [1]},
+            {"size": 16*16, "type": "hidden", "inputs": [2]},
+            {"size": 16, "type": "output", "inputs": [3]},
+        ])
+        save_arch_to_file(encoder_arch, "encoder_arch.txt")
+        save_arch_to_file(decoder_arch, "decoder_arch.txt")
         rng_seed = 1751501246
         z_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        encoder = NetworkInterface(get_network_arch(**get_encoder_architecture()))
-        decoder = NetworkInterface(get_network_arch(**get_decoder_architecture()))
+        dll_loader = LoaderIface()
+        encoder = NetworkInterface(get_network_arch(**encoder_arch), dll_loader)
+        decoder = NetworkInterface(get_network_arch(**decoder_arch), dll_loader)
+        # return
         encoder.init_rng(rng_seed)  # Use a seed for consistency
         for s in sentences:
             v_in = string_to_binary_array(s)
             n_steps = len(v_in)
+            print("Encoding data ...")
             for symbol in v_in:
-                encoder.get_outputs(symbol)
-            v_irt = encoder.get_outputs(z_array)
+                encoder.get_outputs(symbol, 256)
+            v_irt = encoder.get_outputs(z_array, 256)
             v_in.append(z_array)
             v_out = []
+            print("Decoding data ...")
             for _ in range(n_steps):
-                v_out.append(decoder.get_outputs(v_irt))
-            v_out.append(decoder.get_outputs(v_irt))
-            error = get_network_error(v_in, v_out)
-            print(f"{error = }")
+                v_out.append(decoder.get_outputs(v_irt, 16))
+            v_out.append(decoder.get_outputs(v_irt, 16))
+            # error = get_network_error(v_in, v_out)
+            print(f"{len(v_in) = }")
+            print(f"{len(v_in[0]) = }")
+            print(f"{len(v_irt) = }")
+            print(f"{len(v_out) = }")
+            print(f"{len(v_out[0]) = }")
+            for i in v_in:
+                print(f"v_in: {i}")
+            # for i in range(16):
+            #     print(f"v_irt[{i}]: [", end='')
+            #     for j in range(16):
+            #         print(f"{v_irt[(16*i)+j]:.2f}, ", end='')
+            #     print(f"]")
+            print(f"{v_irt = }")
+            # for i in v_out:
+            #     print(f"v_out: {i}")
+            # print(f"{error = }")
             break
 
         # error = get_network_error(expected_outputs, outputs)
