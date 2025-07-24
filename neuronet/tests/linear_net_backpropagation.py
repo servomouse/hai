@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from python.interface import NetworkInterface, get_network_error, get_network_individual_errors
 from python.network import get_network_arch, NeuronTypes
+from python.dll_loader import LoaderIface
 
 
 network_architecture = {
@@ -27,9 +28,10 @@ class TestClassName(unittest.TestCase):
         expected_outputs = [0.1, -0.3, 0.5, -0.7]
         rng_seed = 1751501246
 
-        network = NetworkInterface(get_network_arch(**network_architecture))
+        dll_loader = LoaderIface()
+        network = NetworkInterface(get_network_arch(**network_architecture), dll_loader)
         network.init_rng(rng_seed)  # Use a seed for consistency
-        outputs = network.get_outputs(net_inputs)
+        outputs = network.get_outputs(net_inputs, 4)
         error = get_network_error(expected_outputs, outputs)
         individual_errors = get_network_individual_errors(expected_outputs, outputs)
         print(f"Initial error: {error}, individual errors: {individual_errors}")
@@ -40,7 +42,7 @@ class TestClassName(unittest.TestCase):
             network.backpropagation(individual_errors)
             network.backprop_update_weights(0.01)
 
-            outputs = network.get_outputs(net_inputs)
+            outputs = network.get_outputs(net_inputs, 4)
             error = get_network_error(expected_outputs, outputs)
             individual_errors = get_network_individual_errors(expected_outputs, outputs)
             counter += 1

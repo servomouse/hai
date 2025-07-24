@@ -1,8 +1,8 @@
 import ctypes
 import numpy as np
 import os
-from .check_dll import check_compatibility
-from .dll_loader import get_dll_function
+# from .check_dll import check_compatibility
+# from .dll_loader import get_dll_function
 from .network import get_network_arch, NeuronTypes
 
 network_dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
@@ -56,28 +56,25 @@ def get_network_individual_errors(target, result):
 
 
 class NetworkInterface:
-    def __init__(self, net_arch):
+    def __init__(self, net_arch, dll_loader):
         self.dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
-        # Check the dll"
-        if not os.path.isfile(self.dll_path):
-            raise Exception(f"Error: cannot open file ({self.dll_path})")
-        check_compatibility(self.dll_path)
+        self.dll_loader = dll_loader
 
-        self.network = ctypes.CDLL(self.dll_path)
+        self.network = self.dll_loader.upload(self.dll_path)
         self.net_arch = net_arch
 
         for function, signature in dll_interface.items():
-            get_dll_function(self.network, function, signature)
+            self.dll_loader.register_dll_function(self.network, function, signature)
 
         uint32_array = np.array(self.net_arch, dtype=np.uint32)
         uint32_array_pointer = uint32_array.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
         self.network.network_create(uint32_array_pointer, uint32_array.size)
 
-    def get_outputs(self, inputs):
+    def get_outputs(self, inputs, num_outputs):
         input_array = (ctypes.c_double * len(inputs))(*inputs)
         output_ptr = self.network.network_get_outputs(input_array)
         output_list = []
-        for i in range(len(inputs)):  # Adjust the range as needed
+        for i in range(num_outputs):
             output_list.append(output_ptr[i])
         return output_list
 

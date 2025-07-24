@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from python.interface import NetworkInterface, get_network_error
 from python.network import get_network_arch, NeuronTypes
+from python.dll_loader import LoaderIface
 
 
 network_architecture = {
@@ -28,13 +29,14 @@ class TestClassName(unittest.TestCase):
         error_threshold = 0.001
         rng_seed = 1751501246
 
-        network = NetworkInterface(get_network_arch(**network_architecture))
+        dll_loader = LoaderIface()
+        network = NetworkInterface(get_network_arch(**network_architecture), dll_loader)
         network.init_rng(rng_seed)
-        error = get_network_error(expected_outputs, network.get_outputs(net_inputs))
+        error = get_network_error(expected_outputs, network.get_outputs(net_inputs, 4))
         counter = 0
         while error > error_threshold:
             network.mutate(0.1)
-            new_error = get_network_error(expected_outputs, network.get_outputs(net_inputs))
+            new_error = get_network_error(expected_outputs, network.get_outputs(net_inputs, 4))
             if new_error > error:
                 network.rollback()
             elif new_error < error:
@@ -42,7 +44,7 @@ class TestClassName(unittest.TestCase):
             counter += 1
             self.assertLess(counter, 1000)
 
-        error = get_network_error(expected_outputs, network.get_outputs(net_inputs))
+        error = get_network_error(expected_outputs, network.get_outputs(net_inputs, 4))
         self.assertLess(error, error_threshold)
 
 

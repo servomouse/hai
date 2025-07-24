@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from python.interface import NetworkInterface, get_network_error
 from python.network import get_network_arch, NeuronTypes
+from python.dll_loader import LoaderIface
 
 
 network_architecture = {
@@ -32,8 +33,9 @@ class TestClassName(unittest.TestCase):
         net_inputs = [0.2, -0.2, 0.2, -0.2]
         expected_outputs = [0.1, -0.3, 0.5, -0.7]
 
-        network = NetworkInterface(get_network_arch(**network_architecture))
-        outputs = network.get_outputs(net_inputs)
+        dll_loader = LoaderIface()
+        network = NetworkInterface(get_network_arch(**network_architecture), dll_loader)
+        outputs = network.get_outputs(net_inputs, 4)
         for i in range(4):
             coeffs = network.get_coeffs(i)
             coeffs = [float(c) for c in coeffs[1:-1].split(", ")]
@@ -43,7 +45,7 @@ class TestClassName(unittest.TestCase):
         for i in range(len(final_coeffs)):
             network.set_coeffs(i, final_coeffs[i])
 
-        outputs = network.get_outputs(net_inputs)
+        outputs = network.get_outputs(net_inputs, 4)
         for i in range(4):
             coeffs = network.get_coeffs(i)
             coeffs = [float(c) for c in coeffs[1:-1].split(", ")]
