@@ -4,6 +4,7 @@ import os
 # from .check_dll import check_compatibility
 # from .dll_loader import get_dll_function
 from .network import get_network_arch, NeuronTypes
+import json
 
 network_dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
 
@@ -19,6 +20,7 @@ dll_interface = {
     "network_backpropagation":          "void foo(double *)",
     "network_backprop_update_weights":  "void foo(double)",
     "network_clean":                    "void foo(void)",
+    "network_get_num_neurons":          "uint32_t foo(void)",
 }
 
 network_architecture = {
@@ -103,12 +105,35 @@ class NetworkInterface:
         values_array = (ctypes.c_double * len(values))(*values)
         self.network.network_set_coeffs(ctypes.c_uint32(idx), values_array)
     
+    def get_num_neurons(self):
+        return self.network.network_get_num_neurons()
+    
     def backpropagation(self, errors):
         errors_array = (ctypes.c_double * len(errors))(*errors)
         self.network.network_backpropagation(errors_array)
     
     def backprop_update_weights(self, learning_rate):
         self.network.network_backprop_update_weights(ctypes.c_double(learning_rate))
+    
+    def network_save_coeffs(self, filename):
+        net_coeffs = []
+        for i in range(self.get_num_neurons()):
+            coeffs = self.get_coeffs(i)
+            net_coeffs.append([float(c) for c in coeffs[1:-1].split(", ")])
+        data = ["["]
+        for g in net_coeffs:
+            data.append(f"\t{g},")
+        data[-1] = data[-1][:-1]    # Remove the last comma
+        data.append("]")
+
+        with open(filename, 'w') as f:
+            f.write("\n".join(data))
+    
+    def network_restore_coeffs(self, filename):
+        with open(filename) as f:
+            net_coeffs = json.loads(f.read())
+        for i in range(len(net_coeffs)):
+            self.set_coeffs(i, net_coeffs[i])
 
 
 def main():
