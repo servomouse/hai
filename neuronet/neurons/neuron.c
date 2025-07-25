@@ -92,7 +92,7 @@ double control_coeffs_func(double coeff) {
     } else if(coeff < -1.0) {
         return -1.0;
     } else {
-        return coeff;
+        return round_to_precision(coeff, 6);
     }
 }
 // The opposite is neuron_rollback
