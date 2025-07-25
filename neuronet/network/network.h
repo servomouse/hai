@@ -17,6 +17,7 @@ void network_backprop_update_weights(double learning_rate);
 // Returns a list of coeffs of a given neuron as a string like this: {-0.123457, 0.987654, -0.456789}. Free after use
 char * network_get_coeffs(uint32_t idx);
 void network_set_coeffs(uint32_t idx, double *values);
+uint32_t network_get_num_neurons(void);
 void network_free(void *ptr);   // Provides the ability to free allocated memory from outside of the SO/DLL
 void network_init_rng(size_t seed); // Init RNG with a seed (for repeatability in tests)
 

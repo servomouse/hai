@@ -62,6 +62,11 @@ void network_set_coeffs(uint32_t idx, double *values) {
 }
 
 DLL_PREFIX
+uint32_t network_get_num_neurons(void) {
+    return network->num_neurons;
+}
+
+DLL_PREFIX
 void network_free(void *ptr) {
     if(ptr != NULL) {
         free(ptr);
