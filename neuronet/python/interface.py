@@ -18,6 +18,7 @@ dll_interface = {
     "network_set_coeffs":               "void foo(uint32_t, double *)",
     "network_free":                     "void foo(void *)",
     "network_backpropagation":          "void foo(double *)",
+    "network_get_input_errors":         "double * foo(void)",
     "network_backprop_update_weights":  "void foo(double)",
     "network_clean":                    "void foo(void)",
     "network_get_num_neurons":          "uint32_t foo(void)",
@@ -111,6 +112,13 @@ class NetworkInterface:
     def backpropagation(self, errors):
         errors_array = (ctypes.c_double * len(errors))(*errors)
         self.network.network_backpropagation(errors_array)
+
+    def get_input_errors(self, num_inputs):
+        errors_ptr = self.network.network_get_outputs()
+        errors_list = []
+        for i in range(num_inputs):
+            errors_list.append(errors_ptr[i])
+        return errors_list
     
     def backprop_update_weights(self, learning_rate):
         self.network.network_backprop_update_weights(ctypes.c_double(learning_rate))
@@ -119,10 +127,11 @@ class NetworkInterface:
         net_coeffs = []
         for i in range(self.get_num_neurons()):
             coeffs = self.get_coeffs(i)
-            net_coeffs.append([float(c) for c in coeffs[1:-1].split(", ")])
+            net_coeffs.append(coeffs[1:-1])
+            # net_coeffs.append([float(c) for c in coeffs[1:-1].split(", ")])
         data = ["["]
         for g in net_coeffs:
-            data.append(f"\t{g},")
+            data.append(f"\t[{g}],")
         data[-1] = data[-1][:-1]    # Remove the last comma
         data.append("]")
 
