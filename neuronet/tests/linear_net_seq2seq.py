@@ -2,6 +2,8 @@ import sys
 import os
 import unittest
 import numpy as np
+import concurrent.futures
+import random
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -11,33 +13,33 @@ from python.dll_loader import LoaderIface
 
 
 sentences = [
-    "A fallen tree is blocking the road.",
-    "The birds built their nest in the small fir tree.",
-    "The air was so still that not even the leaves on the trees were moving.",
-    "These trees will have to be cut down to make way for the new road.",
-    "A young boy climbed into the apple tree and shook the branches so that the fruit fell down.",
-    "The sun climbed higher in the sky.",
-    "They're advising that children be kept out of the sun altogether.",
-    "The clouds finally parted and the sun came out.",
-    "She left the midday sun for the cool of the shade.",
-    "Now I know it won't look very cool, but this hat will keep the sun out of your eyes.",
-    "We camped on one of the lower slopes of the mountain.",
-    "The view from the top of the mountain is breathtaking.",
-    "What's the highest mountain in Europe?",
-    "After three days lost in the mountains, all the climbers arrived home safe and sound.",
-    "They slowly ascended the steep path up the mountain.",
-    "The balloon rose gently (up) into the air.",
-    "The volcano spewed a giant cloud of ash, dust, and gases into the air.",
-    "The extent of the flooding can only be fully appreciated when viewed from the air.",
-    "The ball carried high into the air and landed the other side of the fence.",
-    "A cloud of dust rose in the air as the car roared past.",
-    "It's the dampness in the air that is bad for your lungs.",
-    "He let the air out of the balloon.",
-    "The mountain air was wonderfully pure.",
-    "There was a rush of air as she opened the door.",
-    "Stricter controls on air pollution would help to reduce acid rain.",
-    "Warm air rises by the process of convection.",
-    "She's studying modern Japanese language and culture.",
+    # "A fallen tree is blocking the road.",
+    # "The birds built their nest in the small fir tree.",
+    # "The air was so still that not even the leaves on the trees were moving.",
+    # "These trees will have to be cut down to make way for the new road.",
+    # "A young boy climbed into the apple tree and shook the branches so that the fruit fell down.",
+    # "The sun climbed higher in the sky.",
+    # "They're advising that children be kept out of the sun altogether.",
+    # "The clouds finally parted and the sun came out.",
+    # "She left the midday sun for the cool of the shade.",
+    # "Now I know it won't look very cool, but this hat will keep the sun out of your eyes.",
+    # "We camped on one of the lower slopes of the mountain.",
+    # "The view from the top of the mountain is breathtaking.",
+    # "What's the highest mountain in Europe?",
+    # "After three days lost in the mountains, all the climbers arrived home safe and sound.",
+    # "They slowly ascended the steep path up the mountain.",
+    # "The balloon rose gently (up) into the air.",
+    # "The volcano spewed a giant cloud of ash, dust, and gases into the air.",
+    # "The extent of the flooding can only be fully appreciated when viewed from the air.",
+    # "The ball carried high into the air and landed the other side of the fence.",
+    # "A cloud of dust rose in the air as the car roared past.",
+    # "It's the dampness in the air that is bad for your lungs.",
+    # "He let the air out of the balloon.",
+    # "The mountain air was wonderfully pure.",
+    # "There was a rush of air as she opened the door.",
+    # "Stricter controls on air pollution would help to reduce acid rain.",
+    # "Warm air rises by the process of convection.",
+    # "She's studying modern Japanese language and culture.",
     "Unable to speak a word of the language, he communicated with his hands.",
     "We were encouraged to learn foreign languages at school.",
     "Her novels have been translated into 19 languages.",
@@ -76,6 +78,29 @@ def string_to_binary_array(input_string):
     return binary_array
 
 
+def binary_array_to_string(binary_array):
+    # Convert each row of the binary array to a character
+    characters = []
+    for row in binary_array:
+        binary_string = ''.join(str(bit) for bit in row)
+        character = chr(int(binary_string, 2))
+        characters.append(character)
+    return ''.join(characters)
+
+
+def float_to_bin(value):
+    if value > 0.5:
+        return 1
+    return 0
+
+
+def float_to_binary_array(float_array):
+    bin_array = []
+    for i in float_array:
+        bin_array.append([float_to_bin(a) for a in i])
+    return bin_array
+
+
 def has_duplicates(arr):
     """
     Checks if a list contains duplicate elements.
@@ -111,18 +136,6 @@ def random_binary_array(m, n):
     binary_array = [1] * num_ones + [0] * num_zeros
     np.random.shuffle(binary_array)
     return np.array(binary_array).reshape(m, n).tolist()
-
-
-# network_architecture = {
-#     "num_inputs": 8 + (16*16),
-#     "neurons": [
-#         *[{"idx": i, "type": NeuronTypes.Linear, "input_indices": [j for j in range(8)]} for i in range(8, 16)],    # Serial input layer
-#         {"idx": 5, "type": NeuronTypes.Linear, "input_indices": [0, 1, 2, 3]},
-#         {"idx": 6, "type": NeuronTypes.Linear, "input_indices": [0, 1, 2, 3]},
-#         {"idx": 7, "type": NeuronTypes.Linear, "input_indices": [0, 1, 2, 3]},
-#     ],
-#     "output_indices": [4, 5, 6, 7]
-# }
 
 
 def save_arch_to_file(network_arch, filename):
@@ -185,80 +198,31 @@ def get_net_arch(arch):
     return net_arch
 
 
-def get_encoder_architecture():
-    encoder_architecture = {
-        "num_inputs": 16,
-        "neurons": [],
-        "output_indices": []
-    }
-    layers = [
-        [16, 16],
-        [16, 16],
-        [16, 16],
-    ]
-    layers_indices = []
-    idx = encoder_architecture['num_inputs']
-    for l in layers:
-        indices = []
-        for i in range(idx, l[0]*l[1]+idx):
-            indices.append(i)
-        layers_indices.append(indices)
-        idx += l[0]*l[1]
-    for i in range(len(layers_indices)):
-        inputs = layers_indices[i-1]
-        if i == 0:
-            inputs.extend([a for a in range(encoder_architecture['num_inputs'])])
-        for idx in layers_indices[i]:
-            encoder_architecture['neurons'].append(
-                {"idx": idx, "type": NeuronTypes.Linear, "input_indices": inputs}
-            )
-    encoder_architecture['output_indices'] = layers_indices[-1]
-    with open("encoder_arch.txt", 'w') as f:
-        f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
-        f.write(f"neurons: [\n")
-        for n in encoder_architecture['neurons']:
-            f.write(f"\t{n},\n")
-        f.write(f"],\n")
-        f.write(f"output_indices: {encoder_architecture['output_indices']}\n")
-    return encoder_architecture
+def net_get_output(encoder, decoder, v_in):
+    z_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    n_steps = len(v_in)
+    for symbol in v_in:
+        encoder.get_outputs(symbol, 256)
+    v_irt = encoder.get_outputs(z_array, 256)
+    v_in.append(z_array)
+    v_out = []
+    for _ in range(n_steps):
+        v_out.append(decoder.get_outputs(v_irt, 16))
+    v_out.append(decoder.get_outputs(v_irt, 16))
+    return v_out
 
-def get_decoder_architecture():
-    encoder_architecture = {
-        "num_inputs": 16*16,
-        "neurons": [],
-        "output_indices": []
-    }
-    layers = [
-        [16, 16],
-        [16, 16],
-        [16, 16],
-        [16, 1],
-    ]
-    layers_indices = []
-    idx = encoder_architecture['num_inputs']
-    for l in layers:
-        indices = []
-        for i in range(idx, l[0]*l[1]+idx):
-            indices.append(i)
-        layers_indices.append(indices)
-        idx += l[0]*l[1]
-    for i in range(len(layers_indices)):
-        inputs = layers_indices[i-2] if i == 0 else layers_indices[i-1]
-        if i == 0:
-            inputs.extend([a for a in range(encoder_architecture['num_inputs'])])
-        for idx in layers_indices[i]:
-            encoder_architecture['neurons'].append(
-                {"idx": idx, "type": NeuronTypes.Linear, "input_indices": inputs}
-            )
-    encoder_architecture['output_indices'] = layers_indices[-1]
-    with open("decoder_arch.txt", 'w') as f:
-        f.write(f"num_inputs: {encoder_architecture['num_inputs']},\n")
-        f.write(f"neurons: [\n")
-        for n in encoder_architecture['neurons']:
-            f.write(f"\t{n},\n")
-        f.write(f"],\n")
-        f.write(f"output_indices: {encoder_architecture['output_indices']}\n")
-    return encoder_architecture
+
+def get_net_error(encoder, decoder, dataset):
+    error_counter = 0
+    error = 0
+    for s in dataset:
+        v_in = string_to_binary_array(s)
+        v_out = net_get_output(encoder, decoder, v_in)
+        error += get_network_error(v_in, v_out)
+        error_counter += 1
+        encoder.clean()
+        decoder.clean()
+    return error/error_counter
 
 
 class TestClassName(unittest.TestCase):
@@ -276,47 +240,54 @@ class TestClassName(unittest.TestCase):
             {"size": 16*16, "type": "hidden", "inputs": [2]},
             {"size": 16, "type": "output", "inputs": [3]},
         ])
-        save_arch_to_file(encoder_arch, "encoder_arch.txt")
-        save_arch_to_file(decoder_arch, "decoder_arch.txt")
+        # save_arch_to_file(encoder_arch, "encoder_arch.txt")
+        # save_arch_to_file(decoder_arch, "decoder_arch.txt")
         rng_seed = 1751501246
-        z_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         dll_loader = LoaderIface()
         encoder = NetworkInterface(get_network_arch(**encoder_arch), dll_loader)
         decoder = NetworkInterface(get_network_arch(**decoder_arch), dll_loader)
-        # return
-        encoder.init_rng(rng_seed)  # Use a seed for consistency
-        for s in sentences:
-            v_in = string_to_binary_array(s)
-            n_steps = len(v_in)
-            print("Encoding data ...")
-            for symbol in v_in:
-                encoder.get_outputs(symbol, 256)
-            v_irt = encoder.get_outputs(z_array, 256)
-            v_in.append(z_array)
-            v_out = []
-            print("Decoding data ...")
-            for _ in range(n_steps):
-                v_out.append(decoder.get_outputs(v_irt, 16))
-            v_out.append(decoder.get_outputs(v_irt, 16))
-            # error = get_network_error(v_in, v_out)
-            print(f"{len(v_in) = }")
-            print(f"{len(v_in[0]) = }")
-            print(f"{len(v_irt) = }")
-            print(f"{len(v_out) = }")
-            print(f"{len(v_out[0]) = }")
-            for i in v_in:
-                print(f"v_in: {i}")
-            # for i in range(16):
-            #     print(f"v_irt[{i}]: [", end='')
-            #     for j in range(16):
-            #         print(f"{v_irt[(16*i)+j]:.2f}, ", end='')
-            #     print(f"]")
-            print(f"{v_irt = }")
-            # for i in v_out:
-            #     print(f"v_out: {i}")
-            # print(f"{error = }")
-            break
+        # encoder.init_rng(rng_seed)  # Use a seed for consistency
+        # decoder.init_rng(rng_seed)  # Use a seed for consistency
+        # print(f"{encoder.get_num_neurons() = }")
+        # print(f"{decoder.get_num_neurons() = }")
+        encoder.network_restore_coeffs("encoder_coeffs.txt")
+        decoder.network_restore_coeffs("decoder_coeffs.txt")
+        nets = [encoder, decoder]
+        min_error = get_net_error(encoder, decoder, sentences)
+        selector = 0
+        print(f"Initial error: {min_error}")
+        for lap in range(10000):
+            print(f"\rRunning {lap}'th round . . .", end='')
+            nets[selector].mutate(0.1)
+            new_error = get_net_error(encoder, decoder, sentences)
+            if new_error > min_error:
+                nets[selector].rollback()
+            elif new_error < min_error:
+                min_error = new_error
+                print(f"\t{new_error = }")
+            if (lap % 100) == 0:
+                encoder.network_save_coeffs("encoder_coeffs.txt")
+                decoder.network_save_coeffs("decoder_coeffs.txt")
+                print("Coeffs saved")
+            if selector == 0:
+                selector = 1
+            else:
+                selector = 0
+            if (lap % 1000) == 0:
+                in_str = random.choice(sentences)
+                outputs = net_get_output(encoder, decoder, string_to_binary_array(in_str))
+                out_str = binary_array_to_string(float_to_binary_array(outputs))
+                print(f"\tInput string: {in_str}; output string: {out_str}")
+
+        in_str = random.choice(sentences)
+        outputs = net_get_output(encoder, decoder, string_to_binary_array(in_str))
+        out_str = binary_array_to_string(float_to_binary_array(outputs))
+        print(f"\tInput string: {in_str}; output string: {out_str}")
+
+        print(f"\tFinal error: {min_error}")
+        encoder.network_save_coeffs("encoder_coeffs.txt")
+        decoder.network_save_coeffs("decoder_coeffs.txt")
 
         # error = get_network_error(expected_outputs, outputs)
         # individual_errors = get_network_individual_errors(expected_outputs, outputs)
