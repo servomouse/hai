@@ -12,6 +12,7 @@ void network_clean(void);
 void network_mutate(double mutation_step);  // mutation_step is a value between 0 and 1
 void network_rollback(void);
 void network_backpropagation(double *errors);
+double * network_get_input_errors(void);  // Get network inputs errors for complex systems
 void network_backprop_update_weights(double learning_rate);
 
 // Returns a list of coeffs of a given neuron as a string like this: {-0.123457, 0.987654, -0.456789}. Free after use

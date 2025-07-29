@@ -12,7 +12,7 @@ void neuron_linear_create(neuron_t *n, uint32_t num_inputs) {
     n->coeffs_delta = calloc(n->num_coeffs, sizeof(double));
     n->bp_deltas = calloc(n->num_coeffs, sizeof(backprop_error_t));
     for(uint32_t i=0; i<n->num_coeffs; i++) {
-        ((double*)n->coeffs)[i] = random_double(-1.0, 1.0);
+        ((double*)n->coeffs)[i] = random_double(-0.1, 0.1);
     }
 }
 

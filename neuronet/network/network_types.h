@@ -15,7 +15,7 @@ typedef struct {
     char **items;
 } net_coeffs_t;
 
-typedef struct network_t {
+typedef struct {
     uint8_t is_micronet;
     uint32_t num_inputs;
     uint32_t num_neurons;
@@ -23,10 +23,11 @@ typedef struct network_t {
     uint32_t size;
     double *arr;
     backprop_error_t *bp_errors;    // Errors for back propagation
+    double *input_errors;
     neuron_t *neurons;
     uint32_t *output_indices;
     double *outputs;
     uint32_t mutated_neuron_idx;
-    uint32_t num_micronets;
-    struct network_t **micronets;
+    // uint32_t num_micronets;
+    // struct network_t **micronets;
 } network_t;

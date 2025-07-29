@@ -88,6 +88,15 @@ void network_backpropagation(double *errors) {
     for(uint32_t i=network->size-1; i>=network->num_inputs; i--) {  // network[:num_inputs] aren't real neurons, so skip them
         neuron_backpropagate(&network->neurons[i-network->num_inputs], network->bp_errors, i);
     }
+    for(uint32_t i=0; i<network->num_inputs; i++) {
+        if(network->bp_errors[i].counter > 0)
+            network->input_errors[i] = network->bp_errors[i].error_sum / network->bp_errors[i].counter;
+    }
+}
+
+DLL_PREFIX
+double * network_get_input_errors(void) {
+    return network->input_errors;
 }
 
 DLL_PREFIX

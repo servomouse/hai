@@ -88,8 +88,9 @@ network_t * parse_net_map(uint32_t *data) {
     net->neurons = (neuron_t*)calloc(net->num_neurons, sizeof(neuron_t));
     net->output_indices = (uint32_t*)calloc(net->num_outputs, sizeof(uint32_t));
     net->outputs = (double*)calloc(net->num_outputs, sizeof(double));
+    net->input_errors = (double*)calloc(net->num_inputs, sizeof(double));
     net->mutated_neuron_idx = 0;
-    net->micronets = NULL;
+    // net->micronets = NULL;
     
     for(uint32_t i=0; i<net->num_outputs; i++) {
         net->output_indices[i] = data[NET_OUTPUT_INDICES+i];
