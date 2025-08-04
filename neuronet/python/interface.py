@@ -55,11 +55,12 @@ def get_network_individual_errors(target, result):
     errors = []
     for i in range(len(target)):
         errors.append(2 * (target[i] - result[i]))
+        # errors.append(result[i] - target[i])
     return errors
 
 
 class NetworkInterface:
-    def __init__(self, net_arch, dll_loader):
+    def __init__(self, net_arch, dll_loader, rng_seed=None):
         self.dll_path = 'D:\\Work\\Projects\\HAI\\neuronet\\bin\\libnetwork.dll'
         self.dll_loader = dll_loader
 
@@ -71,6 +72,8 @@ class NetworkInterface:
 
         uint32_array = np.array(self.net_arch, dtype=np.uint32)
         uint32_array_pointer = uint32_array.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
+        if rng_seed is not None:
+            self.init_rng(rng_seed)
         self.network.network_create(uint32_array_pointer, uint32_array.size)
 
     def get_outputs(self, inputs, num_outputs):
@@ -114,7 +117,7 @@ class NetworkInterface:
         self.network.network_backpropagation(errors_array)
 
     def get_input_errors(self, num_inputs):
-        errors_ptr = self.network.network_get_outputs()
+        errors_ptr = self.network.network_get_input_errors()
         errors_list = []
         for i in range(num_inputs):
             errors_list.append(errors_ptr[i])
