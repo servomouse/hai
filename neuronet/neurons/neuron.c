@@ -148,7 +148,7 @@ void neuron_rollback(neuron_t * n) {
 void neuron_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_idx) {
     switch(n->type) {
         case Linear:
-            neuron_linear_backpropagate(n, errors, self_idx);
+            neuron_linear_backpropagate_new(n, errors, self_idx);
             break;
         case Poly:
             neuron_poly_backpropagate(n, errors, self_idx);
