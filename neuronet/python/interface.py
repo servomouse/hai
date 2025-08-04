@@ -54,8 +54,8 @@ def get_network_individual_errors(target, result):
         raise Exception(f"Error: target vs result outputs length mismatch!")
     errors = []
     for i in range(len(target)):
-        errors.append(2 * (target[i] - result[i]))
-        # errors.append(result[i] - target[i])
+        # errors.append(2 * (target[i] - result[i]))
+        errors.append(result[i] - target[i])    # Works with the updated packprop algorithm
     return errors
 
 
