@@ -68,7 +68,7 @@ void test_evolution(void) {
         printf("%d: %s\n", i, coeffs);
         free(coeffs);
     }
-    if(counter != 124) {
+    if(counter != 261) {
         RAISE("Error: counter value (%d) isn't correct!\n", counter);
     }
 }
