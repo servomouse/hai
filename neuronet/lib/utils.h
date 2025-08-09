@@ -15,3 +15,4 @@
 // Creates an array like this: {-0.123457, 0.987654, -0.456789}
 // Fails on error, no need to check if the result is NULL. Free the result after use
 char* doubles_to_string(const double* array, uint32_t length);
+char* complex_to_string(const void* array, uint32_t num_dimensions, uint32_t length);
