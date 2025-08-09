@@ -10,6 +10,8 @@ enum neuron_type {
     Linear = 0,
     Poly,
     Pattern,
+    Temporal,
+    Switch,
     Neuron_types_num,   // Keep me last
 };
 
@@ -20,6 +22,7 @@ typedef struct {
 
 typedef struct {
     double *inputs;
+    double *prev_inputs;    // For the temporal neuron
     uint32_t *input_indices;
     uint32_t num_inputs;
     void *coeffs;
