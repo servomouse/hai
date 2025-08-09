@@ -16,7 +16,10 @@ void neuron_linear_create(neuron_t *n, uint32_t num_inputs) {
     }
 }
 
-double neuron_linear_get_output(neuron_t *n) {
+double neuron_linear_get_output(neuron_t *n, double *inputs) {
+    for(uint32_t i=0; i<n->num_inputs; i++) {
+        n->inputs[i] = inputs[n->input_indices[i]];
+    }
     n->weighted_sum = ((double*)n->coeffs)[n->num_coeffs-1]; // BIAS
     for(uint32_t i=0; i<n->num_inputs; i++) {
         n->weighted_sum += n->inputs[i] * ((double*)n->coeffs)[i];
@@ -72,6 +75,10 @@ void neuron_linear_backpropagate_new(neuron_t *n, backprop_error_t *errors, uint
     double error = errors[self_idx].error_sum / errors[self_idx].counter;
     errors[self_idx].error_sum = 0;
     errors[self_idx].counter = 0;
+    double delta_amplitude = error;
+    if(delta_amplitude < 0) {
+        delta_amplitude *= -1;
+    }
 
     for (uint32_t i = 0; i < n->num_inputs; i++) {
         double coeff = ((double*)n->coeffs)[i];
@@ -79,23 +86,23 @@ void neuron_linear_backpropagate_new(neuron_t *n, backprop_error_t *errors, uint
         double delta = 0;
         if(error > 0) { // Output is too high
             if((input > 0) && (coeff > 0)) {
-                delta -= random_double(0.5, 1.0);   // -: move down, +: move up
+                delta -= delta_amplitude;   // -: move down, +: move up
             } else if((input > 0) && (coeff < 0)) {
-                delta -= random_double(0.5, 1.0);   // -: move down, +: move up
+                delta -= delta_amplitude;   // -: move down, +: move up
             } else if((input < 0) && (coeff > 0)) {
-                delta += random_double(0.5, 1.0);   // -: move up, +: move down
+                delta += delta_amplitude;   // -: move up, +: move down
             } else {    // (input < 0) && (coeff < 0)
-                delta += random_double(0.5, 1.0);   // -: move up, +: move down
+                delta += delta_amplitude;   // -: move up, +: move down
             }
         } else if(error < 0) {  // Output is too low
             if((input > 0) && (coeff > 0)) {
-                delta += random_double(0.5, 1.0);   // -: move down, +: move up
+                delta += delta_amplitude;   // -: move down, +: move up
             } else if((input > 0) && (coeff < 0)) {
-                delta += random_double(0.5, 1.0);   // -: move down, +: move up
+                delta += delta_amplitude;   // -: move down, +: move up
             } else if((input < 0) && (coeff > 0)) {
-                delta -= random_double(0.5, 1.0);   // -: move up, +: move down
+                delta -= delta_amplitude;   // -: move up, +: move down
             } else {    // (input < 0) && (coeff < 0)
-                delta -= random_double(0.5, 1.0);   // -: move up, +: move down
+                delta -= delta_amplitude;   // -: move up, +: move down
             }
         }
         n->bp_deltas[i].error_sum += delta;
@@ -107,23 +114,23 @@ void neuron_linear_backpropagate_new(neuron_t *n, backprop_error_t *errors, uint
         double delta = 0;
         if(error > 0) { // Output is too high
             if((input > 0) && (coeff > 0)) {
-                delta += random_double(0.5, 1.0);   // -: move down, +: move up
+                delta += delta_amplitude;   // -: move down, +: move up
             } else if((input > 0) && (coeff < 0)) {
-                delta -= random_double(0.5, 1.0);   // -: move up, +: move down
+                delta -= delta_amplitude;   // -: move up, +: move down
             } else if((input < 0) && (coeff > 0)) {
-                delta += random_double(0.5, 1.0);   // -: move down, +: move up
+                delta += delta_amplitude;   // -: move down, +: move up
             } else {    // (input < 0) && (coeff < 0)
-                delta -= random_double(0.5, 1.0);   // -: move up, +: move down
+                delta -= delta_amplitude;   // -: move up, +: move down
             }
         } else if(error < 0) {  // Output is too low
             if((input > 0) && (coeff > 0)) {
-                delta -= random_double(0.5, 1.0);   // -: move down, +: move up
+                delta -= delta_amplitude;   // -: move down, +: move up
             } else if((input > 0) && (coeff < 0)) {
-                delta += random_double(0.5, 1.0);   // -: move up, +: move down
+                delta += delta_amplitude;   // -: move up, +: move down
             } else if((input < 0) && (coeff > 0)) {
-                delta -= random_double(0.5, 1.0);   // -: move down, +: move up
+                delta -= delta_amplitude;   // -: move down, +: move up
             } else {    // (input < 0) && (coeff < 0)
-                delta += random_double(0.5, 1.0);   // -: move up, +: move down
+                delta += delta_amplitude;   // -: move up, +: move down
             }
         }
         errors[n->input_indices[i]].error_sum += delta;
@@ -142,13 +149,13 @@ void neuron_linear_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t
     double derivative = 1.0 - pow(tanh(n->weighted_sum), 2);  // Derivative of the activation function
     if(0 == errors[self_idx].counter) {
         printf("Neuron %d suspicious error: backpropagation error"
-            " counter is 0. Is neuron connected to anything?", self_idx);
+            " counter is 0. Is the neuron connected to anything?", self_idx);
     }
     double output_error = (errors[self_idx].error_sum / errors[self_idx].counter) * derivative;
     errors[self_idx].error_sum = 0;
     errors[self_idx].counter = 0;
 
-    for (uint32_t i = 0; i < n->num_inputs; i++) {
+    for (uint32_t i=0; i < n->num_inputs; i++) {
         errors[n->input_indices[i]].error_sum = output_error * ((double*)n->coeffs)[i];
         errors[n->input_indices[i]].counter ++;
 
@@ -156,21 +163,19 @@ void neuron_linear_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t
         n->bp_deltas[i].counter ++;
     }
     double bias_delta = output_error; // Update the bias
-    n->bp_deltas[n->num_coeffs - 1].error_sum += bias_delta;
-    n->bp_deltas[n->num_coeffs - 1].counter ++;
+    n->bp_deltas[n->num_coeffs-1].error_sum += bias_delta;
+    n->bp_deltas[n->num_coeffs-1].counter ++;
 }
 
 void neuron_linear_backprop_update_weights(neuron_t *n, double learning_rate) {
-    for (uint32_t i = 0; i < n->num_coeffs; i++) {
+    for (uint32_t i=0; i<n->num_coeffs; i++) {
         if(n->bp_deltas[i].counter == 0) {
             n->bp_deltas[i].error_sum = 0;
             continue;
         }
         double delta = n->bp_deltas[i].error_sum / n->bp_deltas[i].counter;
-        // Keep coeffs within the [-1, 1] range
-        ((double*)n->coeffs)[i] = control_coeffs_func(
-            ((double*)n->coeffs)[i] + (learning_rate * delta)
-        );
+        // Keep coeffs within the [-1, 1] range:
+        ((double*)n->coeffs)[i] = control_coeffs_func(((double*)n->coeffs)[i] + (learning_rate * delta));
         n->bp_deltas[i].error_sum = 0;
         n->bp_deltas[i].counter = 0;
     }
