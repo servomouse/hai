@@ -3,6 +3,7 @@
 #include "neuron_linear.c"
 #include "neuron_poly.c"
 #include "neuron_pattern.c"
+#include "neuron_temporal.c"
 
 void neuron_create(neuron_t *n, neuron_description_t *info) {
     switch(info->n_type) {
@@ -14,6 +15,9 @@ void neuron_create(neuron_t *n, neuron_description_t *info) {
             break;
         case Pattern:
             neuron_pattern_create(n, info->num_inputs);
+            break;
+        case Temporal:
+            neuron_temp_create(n, info->num_inputs);
             break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", info->n_type);
@@ -41,6 +45,9 @@ char *neuron_get_coeffs(neuron_t *n) {
         case Pattern:
             return neuron_pattern_get_coeffs(n);
             break;
+        case Temporal:
+            neuron_temp_get_coeffs(n);
+            break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
     }
@@ -57,22 +64,24 @@ void neuron_set_coeffs(neuron_t *n, double *values) {
         case Pattern:
             neuron_pattern_set_coeffs(n, values);
             break;
+        case Temporal:
+            neuron_temp_set_coeffs(n, values);
+            break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
     }
 }
 
 double neuron_get_output(neuron_t *n, double *inputs) {
-    for(uint32_t i=0; i<n->num_inputs; i++) {
-        n->inputs[i] = inputs[n->input_indices[i]];
-    }
     switch(n->type) {
         case Linear:
-            return neuron_linear_get_output(n);
+            return neuron_linear_get_output(n, inputs);
         case Poly:
-            return neuron_poly_get_output(n);
+            return neuron_poly_get_output(n, inputs);
         case Pattern:
-            return neuron_pattern_get_output(n);
+            return neuron_pattern_get_output(n, inputs);
+        case Temporal:
+            return neuron_temp_get_output(n, inputs);
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
     }
@@ -107,6 +116,9 @@ void neuron_stash_state(neuron_t * n) {
         case Pattern:
             neuron_pattern_stash_state(n);
             break;
+        case Temporal:
+            neuron_temp_stash_state(n);
+            break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
     }
@@ -122,6 +134,9 @@ void neuron_mutate(neuron_t * n, double mutation_step) {
             break;
         case Pattern:
             neuron_pattern_mutate(n, mutation_step);
+            break;
+        case Temporal:
+            neuron_temp_mutate(n, mutation_step);
             break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
@@ -140,6 +155,9 @@ void neuron_rollback(neuron_t * n) {
         case Pattern:
             neuron_pattern_rollback(n);
             break;
+        case Temporal:
+            neuron_temp_rollback(n);
+            break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
     }
@@ -156,6 +174,9 @@ void neuron_backpropagate(neuron_t *n, backprop_error_t *errors, uint32_t self_i
         case Pattern:
             neuron_pattern_backpropagate(n, errors, self_idx);
             break;
+        case Temporal:
+            neuron_temp_backpropagate(n, errors, self_idx);
+            break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
     }
@@ -171,6 +192,9 @@ void neuron_backprop_update_weights(neuron_t *n, double learning_rate) {
             break;
         case Pattern:
             neuron_pattern_backprop_update_weights(n, learning_rate);
+            break;
+        case Temporal:
+            neuron_temp_backprop_update_weights(n, learning_rate);
             break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
