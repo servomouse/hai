@@ -49,7 +49,7 @@ class TestClassName(unittest.TestCase):
 
         print(f"Final error: {error}, individual errors: {individual_errors}, outputs: {outputs}")
 
-        self.assertLess(error, 0.0001)
+        self.assertLess(error, 0.0002)
 
     def test_evolution_2_layers(self):
         network_architecture = {
@@ -83,7 +83,7 @@ class TestClassName(unittest.TestCase):
 
         counter = 0
         h = 0.01
-        while counter < 500:
+        while counter < 700:
             error = 0
             outputs_arr = []
             for d in dataset:

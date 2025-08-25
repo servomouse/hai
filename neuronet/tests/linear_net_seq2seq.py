@@ -69,7 +69,16 @@ sentences = [
     "We're open every day except Sunday.",
     "She had five days off work due to illness.",
     "The soldiers marched 90 miles in three days.",
+    "The quick brown fox jumps over the lazy dog"
 ]
+
+# input_len = 2
+
+def get_first_n_words(sentence, n):
+    words = sentence.split()
+    if len(words) <= n:
+        return sentence
+    return ' '.join(words[:n])
 
 def string_to_binary_array(input_string):
     # Convert the string to a 2d array which is a binary representation of the string (16 bit wide)
@@ -209,19 +218,22 @@ def net_get_output(encoder, decoder, v_in):
     for _ in range(n_steps):
         v_out.append(decoder.get_outputs(v_irt, 16))
     v_out.append(decoder.get_outputs(v_irt, 16))
+    encoder.clean()
+    decoder.clean()
     return v_out
 
 
-def get_net_error(encoder, decoder, dataset):
+def get_net_error(encoder, decoder, dataset, input_len):
     error_counter = 0
     error = 0
-    for s in dataset:
-        v_in = string_to_binary_array(s)
-        v_out = net_get_output(encoder, decoder, v_in)
-        error += get_network_error(v_in, v_out)
-        error_counter += 1
-        encoder.clean()
-        decoder.clean()
+    for i in range(input_len):
+        for s in dataset:
+            # i_string = get_first_n_words(s, input_len)
+            i_string = s[:i+1]
+            v_in = string_to_binary_array(i_string)
+            v_out = net_get_output(encoder, decoder, v_in)
+            error += get_network_error(v_in, v_out)
+            error_counter += 1
     return error/error_counter
 
 
@@ -254,13 +266,17 @@ class TestClassName(unittest.TestCase):
         encoder.network_restore_coeffs("encoder_coeffs.txt")
         decoder.network_restore_coeffs("decoder_coeffs.txt")
         nets = [encoder, decoder]
-        min_error = get_net_error(encoder, decoder, sentences)
+        input_len = 1
+        min_error = get_net_error(encoder, decoder, sentences, 10)
         selector = 0
         print(f"Initial error: {min_error}")
-        for lap in range(10000):
-            print(f"\rRunning {lap}'th round . . .", end='')
+        for lap in range(100000):
+            if min_error < 0.001:
+                input_len += 1
+                min_error = get_net_error(encoder, decoder, sentences, input_len)
+            print(f"\rRunning round {lap}, {input_len = } . . .", end='')
             nets[selector].mutate(0.1)
-            new_error = get_net_error(encoder, decoder, sentences)
+            new_error = get_net_error(encoder, decoder, sentences, input_len)
             if new_error > min_error:
                 nets[selector].rollback()
             elif new_error < min_error:
@@ -275,15 +291,21 @@ class TestClassName(unittest.TestCase):
             else:
                 selector = 0
             if (lap % 1000) == 0:
-                in_str = random.choice(sentences)
-                outputs = net_get_output(encoder, decoder, string_to_binary_array(in_str))
-                out_str = binary_array_to_string(float_to_binary_array(outputs))
-                print(f"\tInput string: {in_str}; output string: {out_str}")
+                for _ in range(10):
+                    in_str = random.choice(sentences)
+                    i_string = in_str[:input_len]
+                    # i_string = get_first_n_words(in_str, input_len)
+                    outputs = net_get_output(encoder, decoder, string_to_binary_array(i_string))
+                    out_str = binary_array_to_string(float_to_binary_array(outputs))
+                    print(f"\tInput string: {i_string}; output string: {out_str}")
 
-        in_str = random.choice(sentences)
-        outputs = net_get_output(encoder, decoder, string_to_binary_array(in_str))
-        out_str = binary_array_to_string(float_to_binary_array(outputs))
-        print(f"\tInput string: {in_str}; output string: {out_str}")
+        for _ in range(10):
+            in_str = random.choice(sentences)
+            i_string = in_str[:input_len]
+            # i_string = get_first_n_words(in_str, input_len)
+            outputs = net_get_output(encoder, decoder, string_to_binary_array(i_string))
+            out_str = binary_array_to_string(float_to_binary_array(outputs))
+            print(f"\tInput string: {i_string}; output string: {out_str}")
 
         print(f"\tFinal error: {min_error}")
         encoder.network_save_coeffs("encoder_coeffs.txt")

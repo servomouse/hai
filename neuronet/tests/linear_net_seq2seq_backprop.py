@@ -3,6 +3,7 @@ import os
 import unittest
 import numpy as np
 import concurrent.futures
+import random
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -12,33 +13,33 @@ from python.dll_loader import LoaderIface
 
 
 sentences = [
-    # "A fallen tree is blocking the road.",
-    # "The birds built their nest in the small fir tree.",
-    # "The air was so still that not even the leaves on the trees were moving.",
-    # "These trees will have to be cut down to make way for the new road.",
-    # "A young boy climbed into the apple tree and shook the branches so that the fruit fell down.",
-    # "The sun climbed higher in the sky.",
-    # "They're advising that children be kept out of the sun altogether.",
-    # "The clouds finally parted and the sun came out.",
-    # "She left the midday sun for the cool of the shade.",
-    # "Now I know it won't look very cool, but this hat will keep the sun out of your eyes.",
-    # "We camped on one of the lower slopes of the mountain.",
-    # "The view from the top of the mountain is breathtaking.",
-    # "What's the highest mountain in Europe?",
-    # "After three days lost in the mountains, all the climbers arrived home safe and sound.",
-    # "They slowly ascended the steep path up the mountain.",
-    # "The balloon rose gently (up) into the air.",
-    # "The volcano spewed a giant cloud of ash, dust, and gases into the air.",
-    # "The extent of the flooding can only be fully appreciated when viewed from the air.",
-    # "The ball carried high into the air and landed the other side of the fence.",
-    # "A cloud of dust rose in the air as the car roared past.",
-    # "It's the dampness in the air that is bad for your lungs.",
-    # "He let the air out of the balloon.",
-    # "The mountain air was wonderfully pure.",
-    # "There was a rush of air as she opened the door.",
-    # "Stricter controls on air pollution would help to reduce acid rain.",
-    # "Warm air rises by the process of convection.",
-    # "She's studying modern Japanese language and culture.",
+    "A fallen tree is blocking the road.",
+    "The birds built their nest in the small fir tree.",
+    "The air was so still that not even the leaves on the trees were moving.",
+    "These trees will have to be cut down to make way for the new road.",
+    "A young boy climbed into the apple tree and shook the branches so that the fruit fell down.",
+    "The sun climbed higher in the sky.",
+    "They're advising that children be kept out of the sun altogether.",
+    "The clouds finally parted and the sun came out.",
+    "She left the midday sun for the cool of the shade.",
+    "Now I know it won't look very cool, but this hat will keep the sun out of your eyes.",
+    "We camped on one of the lower slopes of the mountain.",
+    "The view from the top of the mountain is breathtaking.",
+    "What's the highest mountain in Europe?",
+    "After three days lost in the mountains, all the climbers arrived home safe and sound.",
+    "They slowly ascended the steep path up the mountain.",
+    "The balloon rose gently (up) into the air.",
+    "The volcano spewed a giant cloud of ash, dust, and gases into the air.",
+    "The extent of the flooding can only be fully appreciated when viewed from the air.",
+    "The ball carried high into the air and landed the other side of the fence.",
+    "A cloud of dust rose in the air as the car roared past.",
+    "It's the dampness in the air that is bad for your lungs.",
+    "He let the air out of the balloon.",
+    "The mountain air was wonderfully pure.",
+    "There was a rush of air as she opened the door.",
+    "Stricter controls on air pollution would help to reduce acid rain.",
+    "Warm air rises by the process of convection.",
+    "She's studying modern Japanese language and culture.",
     "Unable to speak a word of the language, he communicated with his hands.",
     "We were encouraged to learn foreign languages at school.",
     "Her novels have been translated into 19 languages.",
@@ -69,6 +70,12 @@ sentences = [
     "She had five days off work due to illness.",
     "The soldiers marched 90 miles in three days.",
 ]
+
+def get_first_n_words(sentence, n):
+    words = sentence.split()
+    if len(words) <= n:
+        return sentence
+    return ' '.join(words[:n])
 
 def string_to_binary_array(input_string):
     # Convert the string to a 2d array which is a binary representation of the string (16 bit wide)
@@ -201,7 +208,6 @@ def net_get_output(encoder, decoder, v_in):
     encoder_output_width = 256
     decoder_output_width = 16+256
 
-    v_in.append([0 for _ in range(16)]) # Add a zero-symbol at the end
     encoder_inputs = []
     encoder_outputs = []
     for symbol in v_in:
@@ -225,66 +231,135 @@ def net_get_output(encoder, decoder, v_in):
         decoder_inputs.append(d_input)
         decoder_outputs.append(decoder.get_outputs(d_input, decoder_output_width))
         v_out.append(decoder_outputs[-1][:16])
-    # raise Exception(f"{v_out = }")
 
     return v_out, encoder_inputs, encoder_outputs, decoder_inputs, decoder_outputs
 
 
-def get_net_error(encoder, decoder, dataset):
+def get_net_error(encoder, decoder, dataset, input_len):
     error_counter = 0
     error = 0
-    for s in dataset:
-        v_in = string_to_binary_array(s)
-        v_out, encoder_inputs, encoder_outputs, decoder_inputs, decoder_outputs = net_get_output(encoder, decoder, v_in)
-        error += get_network_error(v_in, v_out)
-        error_counter += 1
-        encoder.clean()
-        decoder.clean()
+    for i in range(input_len):
+        for s in dataset:
+            # i_string = get_first_n_words(s, input_len)
+            i_string = s[:i+1]
+            v_in = string_to_binary_array(i_string)
+            v_out = net_get_output(encoder, decoder, v_in)[0]
+            error += get_network_error(v_in, v_out)
+            error_counter += 1
+    return error/error_counter
+
+
+def network_backprop(encoder, decoder, dataset, input_len):
+    encoder_output_width = 256
+    decoder_output_width = 16+256
+    error_counter = 0
+    error = 0
+    h = 0.1
+    
+    for i in range(input_len):
+        for s in dataset:
+            # i_string = get_first_n_words(s, 1)
+            i_string = s[:i+1]
+            v_in = (string_to_binary_array(i_string))
+            v_in.append([0 for _ in range(16)]) # Add a zero-symbol at the end
+            v_out, encoder_inputs, encoder_outputs, decoder_inputs, decoder_outputs = net_get_output(encoder, decoder, v_in)
+            # encoder.clean()
+            # decoder.clean()
+            error += get_network_error(v_in, v_out)
+            error_counter += 1
+            # Reverse lists:
+            encoder_inputs.reverse()
+            encoder_outputs.reverse()
+            decoder_inputs.reverse()
+            decoder_outputs.reverse()
+
+            ind_errors = [get_network_individual_errors(v_in[i], v_out[i]) for i in range(len(v_in))]
+            ind_errors.reverse()
+
+            # Update decoder:
+            encoder_output_errors = []
+            decoder_input_errors = [[0 for _ in range(256)]]
+            for i in range(len(decoder_outputs)):
+                decoder.get_outputs(decoder_inputs[i], decoder_output_width)
+                individual_errors = ind_errors[i] + decoder_input_errors[-1]
+                decoder.backpropagation(individual_errors)
+                input_errors = decoder.get_input_errors(512)
+                encoder_output_errors.append(input_errors[:256])
+                decoder_input_errors.append(input_errors[256:])
+            decoder.backprop_update_weights(h)
+            # Calculate errors for the encoder:
+            individual_errors = []    # Result is a 1-D array of errors, len == 256
+            for i in range(len(encoder_output_errors[0])):
+                err = 0
+                for j in range(len(encoder_output_errors)):
+                    err += encoder_output_errors[j][i]
+                individual_errors.append(err/len(encoder_output_errors[0]))
+            # Update encoder:
+            for i in range(len(encoder_inputs)):
+                encoder.get_outputs(encoder_inputs[i], encoder_output_width)
+                encoder.backpropagation(individual_errors)
+                individual_errors = encoder.get_input_errors(16+256)[16:] # Exclude errors of the symbol
+            encoder.backprop_update_weights(h)
+            # encoder.clean()
+            # decoder.clean()
+
     return error/error_counter
 
 
 class TestClassName(unittest.TestCase):
     def test_evolution(self):
         encoder_arch = get_net_arch([
-            {"size": 256+16, "type": "input", "inputs": None},
-            {"size": 16*16, "type": "hidden", "inputs": [0]},
-            {"size": 16*16, "type": "hidden", "inputs": [1]},
-            {"size": 16*16, "type": "output", "inputs": [2]},
+            {"size": 256+16, "type": "input",  "inputs": None},
+            {"size": 16*16,  "type": "hidden", "inputs": [0]},
+            # {"size": 16*16,  "type": "hidden", "inputs": [1]},
+            {"size": 16*16,  "type": "output", "inputs": [1]},
         ])
         decoder_arch = get_net_arch([
-            {"size": 256+256, "type": "input", "inputs": None},
-            {"size": 16*16, "type": "hidden", "inputs": [0]},
-            {"size": 16*16, "type": "hidden", "inputs": [1]},
-            {"size": 256, "type": "hidden", "inputs": [2]},
-            {"size": 16, "type": "output", "inputs": [3]},
+            {"size": 256+256, "type": "input",  "inputs": None},
+            {"size": 16*16,   "type": "hidden", "inputs": [0]},
+            # {"size": 16*16,   "type": "hidden", "inputs": [1]},
+            # {"size": 16*16,   "type": "hidden", "inputs": [2]},
+            # {"size": 16,      "type": "output", "inputs": [5]},
+            {"size": 16+16*16,   "type": "output", "inputs": [1]},
         ])
         rng_seed = 1751501246
 
         dll_loader = LoaderIface()
-        encoder = NetworkInterface(get_network_arch(**encoder_arch), dll_loader)
-        decoder = NetworkInterface(get_network_arch(**decoder_arch), dll_loader)
-        encoder.init_rng(rng_seed)  # Use a seed for consistency
-        decoder.init_rng(rng_seed)  # Use a seed for consistency
-        nets = [encoder, decoder]
-        min_error = get_net_error(encoder, decoder, sentences)
-        selector = 0
+        encoder = NetworkInterface(get_network_arch(**encoder_arch), dll_loader, rng_seed)
+        decoder = NetworkInterface(get_network_arch(**decoder_arch), dll_loader, rng_seed)
+        # encoder.init_rng(rng_seed)  # Use a seed for consistency
+        # decoder.init_rng(rng_seed)  # Use a seed for consistency
+        encoder.network_restore_coeffs("encoder_backprop_coeffs.txt")
+        decoder.network_restore_coeffs("decoder_backprop_coeffs.txt")
+
+        # init_emin_errorrror = get_net_error(encoder, decoder, sentences)
+        input_len = 1
+        min_error = get_net_error(encoder, decoder, sentences, 10)
         print(f"Initial error: {min_error}")
-        for lap in range(100):
-            print(f"\rRunning {lap}'th round . . .", end='')
-            nets[selector].mutate(0.1)
-            new_error = get_net_error(encoder, decoder, sentences)
-            if new_error > min_error:
-                nets[selector].rollback()
-            elif new_error < min_error:
-                min_error = new_error
-                print(f"\t{new_error = }")
-            if selector == 0:
-                selector = 1
-            else:
-                selector = 0
-        print(f"\tFinal error: {min_error}")
-        # encoder.network_save_coeffs("encoder_coeffs.txt")
-        # decoder.network_save_coeffs("decoder_coeffs.txt")
+        for lap in range(1000):
+            if min_error < 0.001:
+                input_len += 1
+                min_error = get_net_error(encoder, decoder, sentences, input_len)
+            print(f"\rRunning round {lap}, {input_len = } . . .", end='')
+            network_backprop(encoder, decoder, sentences, input_len)
+            print("Backprop run completed")
+            new_error = get_net_error(encoder, decoder, sentences, input_len)
+            in_str = random.choice(sentences)
+            # i_string = get_first_n_words(in_str, 1)
+            i_string = in_str[:input_len+1]
+            outputs = net_get_output(encoder, decoder, string_to_binary_array(i_string))[0]
+            out_str = binary_array_to_string(float_to_binary_array(outputs))
+            # print(f"\tInput string: {i_string}; output string: {out_str}")
+            try:
+                print(f"New error: {new_error}\tInput string: {in_str}; output string: {out_str}")
+            except UnicodeEncodeError:
+                print(f"Failed to print the result, new error: {new_error}")
+            # if fin_error > min_error:
+            #     break
+            # min_error = fin_error
+            encoder.network_save_coeffs("encoder_backprop_coeffs.txt")
+            decoder.network_save_coeffs("decoder_backprop_coeffs.txt")
+
         self.assertLess(1, 2)
 
 
