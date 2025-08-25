@@ -5,25 +5,33 @@
 #include "neuron_pattern.c"
 #include "neuron_temporal.c"
 
+void neuron_map_input(neuron_t *n, uint32_t input_idx, uint32_t net_idx) {
+    n->input_indices[input_idx] = net_idx;
+}
+
 void neuron_create(neuron_t *n, neuron_description_t *info) {
-    switch(info->n_type) {
-        case Linear:
-            neuron_linear_create(n, info->num_inputs);
-            break;
-        case Poly:
-            neuron_poly_create(n, info->num_inputs);
-            break;
-        case Pattern:
-            neuron_pattern_create(n, info->num_inputs);
-            break;
-        case Temporal:
-            neuron_temp_create(n, info->num_inputs);
-            break;
-        default:
-            RAISE("Error: Unknown neuron type: %d\n", info->n_type);
-    }
+    neuron_create_simple(n, info->n_type, info->num_inputs);
     for(uint32_t i=0; i<info->num_inputs; i++) {
         n->input_indices[i] = info->indices[i];
+    }
+}
+
+void neuron_create_simple(neuron_t *n, neuron_type_t n_type, uint32_t num_inputs) {
+    switch(n_type) {
+        case Linear:
+            neuron_linear_create(n, num_inputs);
+            break;
+        case Poly:
+            neuron_poly_create(n, num_inputs);
+            break;
+        case Pattern:
+            neuron_pattern_create(n, num_inputs);
+            break;
+        case Temporal:
+            neuron_temp_create(n, num_inputs);
+            break;
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n_type);
     }
 }
 
@@ -46,7 +54,7 @@ char *neuron_get_coeffs(neuron_t *n) {
             return neuron_pattern_get_coeffs(n);
             break;
         case Temporal:
-            neuron_temp_get_coeffs(n);
+            return neuron_temp_get_coeffs(n);
             break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);
@@ -66,6 +74,25 @@ void neuron_set_coeffs(neuron_t *n, double *values) {
             break;
         case Temporal:
             neuron_temp_set_coeffs(n, values);
+            break;
+        default:
+            RAISE("Error: Unknown neuron type: %d\n", n->type);
+    }
+}
+
+void neuron_set_coeff(neuron_t *n, uint32_t idx, double value) {
+    switch(n->type) {
+        case Linear:
+            neuron_linear_set_coeff(n, idx, value);
+            break;
+        case Poly:
+            neuron_poly_set_coeff(n, idx, value);
+            break;
+        case Pattern:
+            neuron_pattern_set_coeff(n, idx, value);
+            break;
+        case Temporal:
+            neuron_temp_set_coeff(n, idx, value);
             break;
         default:
             RAISE("Error: Unknown neuron type: %d\n", n->type);

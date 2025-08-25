@@ -45,6 +45,13 @@ void neuron_poly_set_coeffs(neuron_t *n, double *values) {
     }
 }
 
+// Set single coeff
+void neuron_poly_set_coeff(neuron_t *n, uint32_t idx,double value) {
+    if(idx<n->num_coeffs) {
+        ((double*)n->coeffs)[idx] = value;
+    }
+}
+
 /* MUTATIONS */
 
 // The opposite is neuron_rollback

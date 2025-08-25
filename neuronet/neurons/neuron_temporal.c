@@ -42,6 +42,12 @@ void neuron_temp_set_coeffs(neuron_t *n, double *values) {
     }
 }
 
+void neuron_temp_set_coeff(neuron_t *n, uint32_t idx,double value) {
+    if(idx<n->num_coeffs) {
+        ((double*)n->coeffs)[idx] = value;
+    }
+}
+
 /* MUTATIONS */
 
 // The opposite is neuron_rollback

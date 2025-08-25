@@ -7,8 +7,11 @@
 #include "neuron_types.h"
 
 void neuron_create(neuron_t *n, neuron_description_t *info);
-void neuron_set_coeffs(neuron_t *n, double *values);    // Set all coefficients
-char * neuron_get_coeffs(neuron_t *n);                  // Returns coefficients as a string, free after use
+void neuron_create_simple(neuron_t *n, neuron_type_t n_type, uint32_t num_inputs);
+void neuron_map_input(neuron_t *n, uint32_t input_idx, uint32_t net_idx);
+void neuron_set_coeffs(neuron_t *n, double *values);            // Set all coefficients
+void neuron_set_coeff(neuron_t *n, uint32_t idx, double value); // Set individual coeff
+char * neuron_get_coeffs(neuron_t *n);                          // Returns coefficients as a string, free after use
 double neuron_get_output(neuron_t *n, double *inputs);
 double activation_func(double value);
 

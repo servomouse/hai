@@ -19,6 +19,10 @@ void neuron_pattern_set_coeffs(neuron_t *n, double *values) {
     RAISE("Error: Pattern neuron not implemented!\n");
 }
 
+void neuron_pattern_set_coeff(neuron_t *n, uint32_t idx,double value) {
+    RAISE("Error: Pattern neuron not implemented!\n");
+}
+
 /* MUTATIONS */
 
 // The opposite is neuron_rollback
