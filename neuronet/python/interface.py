@@ -42,10 +42,11 @@ def get_network_error(target, result):
     error = 0
     for i in range(len(target)):
         if isinstance(target[i], list): # Process neasted arrays
-            error +=get_network_error(target[i], result[i])
+            e = get_network_error(target[i], result[i])
         else:
-            error += (target[i] - result[i])**2
-    return error / len(target)
+            e = (target[i] - result[i])**2
+        error += e
+    return error/len(target)
 
 
 def get_network_individual_errors(target, result):

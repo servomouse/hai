@@ -7,6 +7,7 @@ add_library(network_dependencies INTERFACE)
 
 target_link_libraries(network_dependencies
     INTERFACE
+        ucore
         neuron
         utils
 )

@@ -7,6 +7,7 @@ include(CTest)
 
 add_subdirectory(lib)
 add_subdirectory(neurons)
+add_subdirectory(ucore)
 add_subdirectory(network)
 add_subdirectory(tests)
 
