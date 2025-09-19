@@ -136,22 +136,12 @@ def encode_word(encoder, word):
     return output
 
 
-def main():
-    encoder_arch = get_net_arch([
-        {"size": LETTER_WIDTH, "type": "input",  "inputs": None},
-        {"size": ENCODED_WIDTH, "type": "input",  "inputs": None},
-        {"size": 8,  "type": "hidden", "inputs": [0]},
-        {"size": 8,  "type": "hidden", "inputs": [1]},
-        {"size": 8,  "type": "hidden", "inputs": [2, 3]},
-        {"size": ENCODED_WIDTH,  "type": "output", "inputs": [4]},
-    ])
-    save_arch_to_file(encoder_arch, "encoder_arch.txt")
+def sparse_encode_word(encoder, word):
+    dense_output = encode_word(encoder, word)
+    return sparsify(SPARSE_PARAM, dense_output)
 
-    dll_loader = LoaderIface()
-    encoder = NetworkInterface(get_network_arch(**encoder_arch), dll_loader)
-    encoder.network_restore_coeffs("encoder_coeffs.txt")
 
-    dataset = english_words
+def train_encoder(encoder, dataset):
 
     min_error, _ = get_encoder_error(encoder, dataset, to_print=True)
     print(f"Initial error: {min_error}")
@@ -177,20 +167,33 @@ def main():
     print(f"\tFinal error: {get_encoder_error(encoder, dataset, to_print=True)}")
 
 
-    # init_arrs = [get_init_arr(12) for _ in range(20)]
-    # sparse_arrs = []
-    # for a in init_arrs:
-    #     # print(a)
-    #     sparse_arrs.append(sparsify(5, a))
-    # # for a in sparse_arrs:
-    # #     print(a)
+def load_encoder():
+    encoder_arch = get_net_arch([
+        {"size": LETTER_WIDTH, "type": "input",  "inputs": None},
+        {"size": ENCODED_WIDTH, "type": "input",  "inputs": None},
+        {"size": 8,  "type": "hidden", "inputs": [0]},
+        {"size": 8,  "type": "hidden", "inputs": [1]},
+        {"size": 8,  "type": "hidden", "inputs": [2, 3]},
+        {"size": ENCODED_WIDTH,  "type": "output", "inputs": [4]},
+    ])
+    # save_arch_to_file(encoder_arch, "encoder_arch.txt")
 
-    # delta = delta_error(init_arrs, sparse_arrs)
-    # distr = distribution_error(sparse_arrs)
-    # total_error = math.sqrt(delta**2 + distr**2)
-    # print(delta)
-    # print(distr)
-    # print(total_error)
+    dll_loader = LoaderIface()
+    encoder = NetworkInterface(get_network_arch(**encoder_arch), dll_loader)
+    encoder.network_restore_coeffs("encoder_coeffs.txt")
+    return encoder
+
+
+def main():
+    encoder = load_encoder()
+
+    # train_encoder(encoder, english_words)
+
+    # dataset = random.sample(english_words, 10)
+    dataset = "some people believe that dreams reveal important things about your subconscious thoughts".split(' ')
+    for w in dataset:
+        sparse_output = sparse_encode_word(encoder, w)
+        print(f"{sparse_output}, {w}")
 
 
 if __name__ == "__main__":
