@@ -1,18 +1,6 @@
+from inputs import InputHub
+from outputs import OutputHub
 
-
-
-class InputProcessor:
-    def __init__(self):
-        pass
-
-class OutputProcessor:
-    def __init__(self):
-        pass
-
-
-class InputHub:
-    def __init__(self):
-        pass
 
 class Memory:
     def __init__(self):
@@ -23,10 +11,6 @@ class Scratchpad:
         pass
 
 class ThinkingCore:
-    def __init__(self):
-        pass
-
-class OutputHub:
     def __init__(self):
         pass
 
@@ -41,7 +25,7 @@ class Brain:
         self.scrpad = Scratchpad()
         self.memory = Memory()
         self.tcore = ThinkingCore()
-        self.ohub = OutputHub()
+        self.ohub = OutputHub(self.ihub)
 
     def tick(self):
         pass
