@@ -1,15 +1,47 @@
-from motions import Motions
-from history import History
-from memory import Memory
-from semantic import SemanticCore
 
 
-class Brain(History, Memory, Motions, SemanticCore):
+
+class InputProcessor:
+    def __init__(self):
+        pass
+
+class OutputProcessor:
+    def __init__(self):
+        pass
+
+
+class InputHub:
+    def __init__(self):
+        pass
+
+class Memory:
+    def __init__(self):
+        pass
+
+class Scratchpad:
+    def __init__(self):
+        pass
+
+class ThinkingCore:
+    def __init__(self):
+        pass
+
+class OutputHub:
+    def __init__(self):
+        pass
+
+
+class Brain:
     def __init__(self):
         self.inputs = {
             "text": [],
             "image": None
         }
+        self.ihub = InputHub()
+        self.scrpad = Scratchpad()
+        self.memory = Memory()
+        self.tcore = ThinkingCore()
+        self.ohub = OutputHub()
 
     def tick(self):
         pass
