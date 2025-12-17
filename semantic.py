@@ -1,11 +1,8 @@
+# pip install -U sentence-transformers
 
+from sentence_transformers import SentenceTransformer
+sentences = ["This is an example sentence", "Each sentence is converted"]
 
-class SemanticCore:
-    def __init__(self):
-        self.concepts = {}
-
-    def encode(text, context):
-        return []
-    
-    def decode(code):
-        return ""
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+embeddings = model.encode(sentences)
+print(embeddings)
