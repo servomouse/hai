@@ -1,0 +1,123 @@
+
+
+action_types = {
+    # Past:
+    "SEP":      # Single Event in the Past
+        "I bought a new book yesterday.",
+    "CSAP":     # Continuous State/Action in the Past
+        "He was living in Berlin at the time.",
+    "RAP":      # Repeated Action in the Past
+        "She visited her grandmother every Sunday.",
+    "SBSP":     # Single event happened Before another Single event in the Past
+        "The train had left before I reached the platform.",
+    "SSSP":     # Single event happened Simultaneously with another Single event in the Past
+        "He dropped the glass exactly when I shouted.",
+    "SASP":     # Single event happened After another Single event in the Past
+        "I locked the door after the guests walked out.",
+    "SBCP":     # Single event happened Before another Continuous action in the Past
+        "The rain stopped before we were even thinking of leaving.",
+    "SDCP":     # Single event happened During another Continuous action in the Past
+        "A bird flew into the window while I was reading.",
+    "SACP":     # Single event happened After another Continuous action in the Past
+        "We drank water after we had been running for an hour.",
+    "CBSP":     # Continuous action happened Before another Single event in the Past
+        "It had been raining for hours before the roof finally leaked.",
+    "CDSP":     # Continuous action During which another Single event happened in the Past
+        "I was sleeping when the alarm went off.",
+    "CASP":     # Continuous action happened After another Single event in the Past
+        "After the music started, everyone was dancing.",
+    "CBCP":     # Continuous action happened Before another Continuous action in the Past
+        "I had been working out before I was cooking dinner.",
+    "CSEDCP":   # Continuous action Started and Ended During another Continuous action in the Past (action wrapped by another action)
+        "I was dozing off and on while the professor was giving the long lecture.",
+    "CDSECP":   # Continuous action During which Started and Ended another Continuous action in the Past (action wraps another action)
+        "The blizzard was howling outside while we were cooking and eating our dinner.",
+    "CDCP":     # Continuous action happened During another Continuous action in the Past
+        "She was singing while he was playing the guitar.",
+    "CACP":     # Continuous action happened After another Continuous action in the Past
+        "After they had been arguing, they were sitting in silence.",
+    "CSDCP":    # Continuous action Started During another Continuous action in the Past
+        "I started feeling sick while we were hiking.",
+    "CEDCP":    # Continuous action Ended During another Continuous action in the Past
+        "The snow stopped falling while we were still driving.",
+    "CDSCP":    # Continuous action During which Started another Continuous action in the Past
+        "We were watching the movie when the storm began brewing.",
+    "CDECP":    # Continuous action During which Ended another Continuous action in the Past
+        "They were talking in the hall when the meeting finally finished.",
+    "SHBPR":    # Single event Happened Before the PResent
+        "I have finished my coffee.",
+    "CHBPR":    # Continuous action Happened Before the PResent
+        "It has been raining (and the ground is still wet).",
+    "REBPR":    # Repeated action Ended Before the PResent
+        "I have visited Paris three times in my life.",
+    "CASSP":    # Continuous Action/State Started in the Past (and still continues in the present)
+        "I have been living in this apartment for five years.",
+    "CASSPJC":  # Continuous Action/State Started in the Past and have Just been Completed
+        "I have been working all day (and I just stopped).",
+    "RSP":      # Repeated action Started in the Past (and still continues in the present)
+        "He has been taking the bus to work since January.",
+    "RSPJC":    # Repeated action Started in the Past and have Just been Completed
+        "We have been meeting every Friday, but we just held our final session.",
+    "CASSPR":   # Continuous Action/State Started in the Present
+        "I am starting to feel much better now.",
+    "RSPR":     # Repeated action Started in the Present
+        "From now on, I am exercising every morning.",
+    "UPR":      # Universal PResent
+        "The sun rises in the east.",
+    "SEF",      # Single Event in the Future
+        "I will send the email tomorrow morning.",
+    "CSAF",     # Continuous State/Action in the Future
+        "We will be traveling through Italy all next month.",
+    "RAF",      # Repeated Action in the Future
+        "He will check the mailbox every day while you're away.",
+    "SBSF",     # Single event Before another Single event in the Future
+        "I will have cooked dinner before you arrive.",
+    "SSSF",     # Single event Simultaneous with another Single event in the Future
+        "I will press "play" exactly when you say "now."",
+    "SASF",     # Single event After another Single event in the Future
+        "We will leave the building after the alarm stops.",
+    "SBCF",     # Single event Before Continuous action in the Future
+        "The rain will stop before we are driving home.",
+    "SDCF",     # Single event During Continuous action in the Future
+        "A package will arrive while you are working.",
+    "SACF",     # Single event After Continuous action in the Future
+        "I will sleep after I have been studying for six hours.",
+    "CBSF",     # Continuous action Before Single event in the Future
+        "I will have been waiting for an hour by the time you show up.",
+    "CDSF",     # Continuous action During which Single event happened in the Future
+        "I will be showering when the plumber arrives.",
+    "CASF",     # Continuous action After Single event in the Future
+        "Once the music starts, the crowd will be cheering.",
+    "CBCF":     # Continuous action happened Before another Continuous action in the Future
+        "I will have been resting before I am hosting the party.",
+    "CSEDCF":   # Continuous action Started and Ended During another Continuous action in the Future (action wrapped by another action)
+        "I will be napping while the kids are playing outside.",
+    "CDSECF":   # Continuous action During which Started and Ended another Continuous action in the Future (action wraps another action)
+        "The band will be playing throughout the time we are eating.",
+    "CDCF":     # Continuous action happened During another Continuous action in the Future
+        "I will be painting while you are sanding the wood.",
+    "CACF":     # Continuous action happened After another Continuous action in the Future
+        "After they have been hiking, they will be relaxing by the fire.",
+    "CSDCF":    # Continuous action Started During another Continuous action in the Future
+        "I will start feeling hungry while we are watching the show.",
+    "CEDCF":    # Continuous action Ended During another Continuous action in the Future
+        "The storm will stop while we are still flying.",
+    "CDSCF":    # Continuous action During which Started another Continuous action in the Future
+        "We will be dancing when the clock starts striking midnight.",
+    "CDECF":    # Continuous action During which Ended another Continuous action in the Future
+        "They will be talking when the ceremony finally finishes.",
+}
+
+I eat a green apple every morning.
+{
+    "subjects": ["I"],
+    "verbs": ["eat"],
+    "objects": [
+        {
+            "noun": "apple",
+            "adjectives": "green"
+        }
+    ]
+    "action_type": "RSP",
+    "time_marker": "every morning"
+}
