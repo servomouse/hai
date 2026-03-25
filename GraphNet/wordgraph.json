@@ -1,0 +1,61 @@
+{
+    "vocabulary": [
+        "rule",
+        "eat",
+        "red",
+        "the",
+        "to",
+        "a",
+        "this",
+        "he",
+        "likes",
+        "every",
+        "case",
+        "apply",
+        "morning",
+        "does",
+        "not",
+        "apple"
+    ],
+    "context_map": {
+        "the rule": {
+            "does": 1
+        },
+        "rule does": {
+            "not": 1
+        },
+        "does not": {
+            "apply": 1
+        },
+        "not apply": {
+            "to": 1
+        },
+        "apply to": {
+            "this": 1
+        },
+        "to this": {
+            "case": 1
+        },
+        "he likes": {
+            "to": 1
+        },
+        "likes to": {
+            "eat": 1
+        },
+        "to eat": {
+            "a": 1
+        },
+        "eat a": {
+            "red": 1
+        },
+        "a red": {
+            "apple": 1
+        },
+        "red apple": {
+            "every": 1
+        },
+        "apple every": {
+            "morning": 1
+        }
+    }
+}
