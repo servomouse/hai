@@ -1,6 +1,5 @@
 import json
 import os
-import difflib
 from collections import defaultdict
 
 class PersistentWordGraph:
@@ -51,39 +50,65 @@ class PersistentWordGraph:
                 print("Existing file corrupted or incompatible. Starting fresh.")
         else:
             print("No existing graph found. Initializing empty.")
+        
+    def levenshtein(self, s1, s2):
+        """Calculates the edit distance between two strings."""
+        if len(s1) < len(s2):
+            return self.levenshtein(s2, s1)
+        if len(s2) == 0:
+            return len(s1)
+
+        previous_row = range(len(s2) + 1)
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+        return previous_row[-1]
 
     def get_superposition(self, word, history=[]):
         word = word.lower()
-        similar_candidates = difflib.get_close_matches(word, self.vocabulary, n=5, cutoff=0.5)
-        
-        if not similar_candidates:
-            return [{"word": word, "prob": 1.0, "note": "new"}]
-
-        # Prepare context key from history
         context_key = " ".join(history[-2:]).lower() if len(history) >= 2 else None
         
+        # 1. Find candidates within a "Sanity Distance" (e.g., max 2-3 edits)
+        candidates = []
+        max_edit_dist = 2 if len(word) < 5 else 3
+        
+        for v in self.vocabulary:
+            dist = self.levenshtein(word, v)
+            if dist <= max_edit_dist:
+                # Convert distance to a similarity score (0.0 to 1.0)
+                score = 1 - (dist / max(len(word), len(v)))
+                candidates.append({"word": v, "lex_score": score})
+
+        # 2. Logic for "True Unknown" (Groot Case)
+        # If no one is close, or the word is just a brand new entity
+        if not candidates:
+            return [{"word": word, "probability": 1.0, "status": "novel_atom"}]
+
+        # 3. Apply Contextual Weighting
         results = []
-        for cand in similar_candidates:
-            # 1. Lexical Similarity (The "Looks like" factor)
-            lex_score = difflib.SequenceMatcher(None, word, cand).ratio()
-            
-            # 2. Contextual Weight (The "Fits here" factor)
-            context_score = 1.0
-            if context_key and context_key in self.context_map:
+        for cand in candidates:
+            context_weight = 0.1 # Baseline for existing word
+            if context_key in self.context_map:
                 followers = self.context_map[context_key]
-                total = sum(followers.values())
-                # Laplacian smoothing (+0.1) prevents zero-division and complete exclusion
-                context_score = (followers.get(cand, 0) + 0.1) / (total + 0.1)
+                # If this word actually appears in this context, boost it!
+                if cand["word"] in followers:
+                    context_weight = followers[cand["word"]] / sum(followers.values())
             
-            results.append({"word": cand, "score": lex_score * context_score})
+            # Final Superposition Score
+            final_score = cand["lex_score"] * (1 + context_weight)
+            results.append({"word": cand["word"], "score": final_score})
 
-        # Normalize probabilities to sum to 1.0
-        total_score = sum(r["score"] for r in results)
-        for r in results:
-            r["probability"] = round(r["score"] / total_score, 3)
-            del r["score"]
-
-        return sorted(results, key=lambda x: x["probability"], reverse=True)
+        # 4. Normalization
+        total = sum(r["score"] for r in results)
+        return sorted(
+            [{"word": r["word"], "probability": round(r["score"] / total, 3)} for r in results],
+            key=lambda x: x["probability"], reverse=True
+        )
 
 # --- Usage Example ---
 wg = PersistentWordGraph()
@@ -94,5 +119,14 @@ if not wg.vocabulary:
     wg.train("He likes to eat a red apple every morning", save_after=True)
 
 # Try a query
-res = wg.get_superposition("aplly", history=["does", "not"])
-print(f"Best match for 'aplly' after 'does not': {res[0]}")
+tasks = [
+    "does not aplly (apply)".split(),
+    "a red aplly (apple)".split(),
+    "I am Groot (Groot)".split(),
+]
+for t in tasks:
+    res = wg.get_superposition(t[2], history=t[:2])
+    print(f"Best match for '{t[2]}' after '{' '.join(t[:2])}':")
+    print(f"\t {res}")
+    print(f"\t correct answer: {t[3]}")
+wg.get_superposition("Groot", history=["I", "am"])
