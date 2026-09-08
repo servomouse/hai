@@ -1,46 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Simple Game with Controls</title>
-    <style>
-        body { margin: 0; display: flex; }
-        canvas { display: block; }
-        #sidebar {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            width: 150px;
-            position: absolute;
-            right: 0;
-            top: 0;
-        }
-        button {
-            margin: 5px;
-            padding: 10px;
-            font-size: 16px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Lightweight Mobile Robot Env</title>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: monospace; background-color: #1a1a1a; color: #00ffcc; }
+    #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+    #canvas-container canvas { touch-action: none; pointer-events: auto; }
+    #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; max-width: 350px; pointer-events: none; z-index: 10; }
+    #controls { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; z-index: 10; }
+    
+    /* PIP Camera Viewport */
+    #pip-container {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.8);
+      border: 2px solid #00ffcc;
+      border-radius: 8px;
+      padding: 5px;
+      z-index: 10;
+    }
+    #pip-title { margin-bottom: 5px; text-align: center; font-size: 11px; }
+    #pip-canvas { width: 240px; height: 160px; display: block; border-radius: 4px; }
+
+    .val { color: #fff; }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+        "@dimforge/rapier3d-compat": "https://cdn.skypack.dev/@dimforge/rapier3d-compat@0.11.2"
+      }
+    }
+  </script>
 </head>
 <body>
-    <div id="sidebar">
-        <h3>Control Cube</h3>
-        <button id="moveForward">Forward</button>
-        <button id="moveBackward">Backward</button>
-        <button id="moveLeft">Left</button>
-        <button id="moveRight">Right</button>
-        <h3>Control Camera</h3>
-        <button id="cameraForward">Camera Forward</button>
-        <button id="cameraBackward">Camera Backward</button>
-        <button id="cameraLeft">Camera Left</button>
-        <button id="cameraRight">Camera Right</button>
-        <button id="cameraUp">Camera Up</button>
-        <button id="cameraDown">Camera Down</button>
-        <button id="rotateClockwise">Rotate Clockwise</button>
-        <button id="rotateCounterclockwise">Rotate Counterclockwise</button>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js"></script>
+  <div id="canvas-container"></div>
 
+  <div id="ui">
+    <h3>--- ROBOT SENSORS ---</h3>
+    <div><b>IMU Gyro (rad/s):</b> <br><span id="gyro" class="val">X: 0 | Y: 0 | Z: 0</span></div><br>
+    <div><b>IMU Accel (m/s²):</b> <br><span id="accel" class="val">X: 0 | Y: 0 | Z: 0</span></div><br>
+    <div><b>Raycast Distance:</b> <span id="dist" class="val">0.00 m</span></div>
+  </div>
+
+  <div id="controls">
+    <b>Controls:</b><br>
+    Move: <span class="val">W / A / S / D or Arrow Keys</span><br>
+    Rotate Camera: <span class="val">Left Click + Drag</span><br>
+    Pan Camera: <span class="val">Right Click + Drag</span>
+  </div>
+
+  <!-- Robot Camera PIP overlay -->
+  <div id="pip-container">
+    <div id="pip-title">ROBOT FPV CAMERA</div>
+    <canvas id="pip-canvas"></canvas>
+  </div>
+
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
