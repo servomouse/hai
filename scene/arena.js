@@ -19,10 +19,15 @@ export class Arena {
     this.renderer.shadowMap.enabled = true;
     this.container.appendChild(this.renderer.domElement);
 
-    // Secondary Renderer for PIP Canvas
-    const pipCanvas = document.getElementById('pip-canvas');
-    this.pipRenderer = new THREE.WebGLRenderer({ canvas: pipCanvas, antialias: true });
-    this.pipRenderer.setSize(240, 160);
+    // Dual PIP Canvas Renderers
+    const leftCanvas = document.getElementById('pip-canvas-left');
+    const rightCanvas = document.getElementById('pip-canvas-right');
+
+    this.leftPipRenderer = new THREE.WebGLRenderer({ canvas: leftCanvas, antialias: true });
+    this.leftPipRenderer.setSize(180, 120);
+
+    this.rightPipRenderer = new THREE.WebGLRenderer({ canvas: rightCanvas, antialias: true });
+    this.rightPipRenderer.setSize(180, 120);
 
     // OrbitControls Setup
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -78,33 +83,29 @@ export class Arena {
     world.createCollider(groundCollider, groundBody);
 
     // --- OBSTACLES DEFINITION ---
-
-    // 2. Mirror Pillar (Replaces the Large Red Pillar)
     this.addMirrorPillar({ x: -3, y: 1.0, z: 2 }, { x: 1.5, y: 2.0, z: 1.5 });
 
-    // Fixed (Unmovable) Cubes
-    this.addCube({ x: 3, y: 0.5, z: -2 }, { x: 1.0, y: 1.0, z: 1.0 }, 0xaa00ff, false); // Medium Purple Block
-    this.addCube({ x: 0, y: 0.75, z: 4 }, { x: 3.0, y: 1.5, z: 0.5 }, 0x333333, false); // Long Dark Wall
+    // Fixed Cubes
+    this.addCube({ x: 3, y: 0.5, z: -2 }, { x: 1.0, y: 1.0, z: 1.0 }, 0xaa00ff, false);
+    this.addCube({ x: 0, y: 0.75, z: 4 }, { x: 3.0, y: 1.5, z: 0.5 }, 0x333333, false);
 
-    // Movable (Pushable) Cubes
-    this.addCube({ x: 1.5, y: 0.4, z: 2 }, { x: 0.8, y: 0.8, z: 0.8 }, 0xffaa00, true);  // Small Orange Box
-    this.addCube({ x: -1.5, y: 0.3, z: -1 }, { x: 0.6, y: 0.6, z: 0.6 }, 0x00ffaa, true); // Teal Crate
+    // Movable Cubes
+    this.addCube({ x: 1.5, y: 0.4, z: 2 }, { x: 0.8, y: 0.8, z: 0.8 }, 0xffaa00, true);
+    this.addCube({ x: -1.5, y: 0.3, z: -1 }, { x: 0.6, y: 0.6, z: 0.6 }, 0x00ffaa, true);
 
-    // Movable (Rollable) Balls / Spheres
-    this.addSphere({ x: 0, y: 0.5, z: 2.5 }, 0.5, 0xff0077, true);   // Medium Pink Ball
-    this.addSphere({ x: -2, y: 0.75, z: -3 }, 0.75, 0x00aaff, true); // Large Blue Beach Ball
-    this.addSphere({ x: 2, y: 0.3, z: -3 }, 0.3, 0xffff00, true);    // Small Yellow Ball
-    this.addSphere({ x: 1, y: 0.4, z: 0 }, 0.4, 0xff8800, true);     // Orange Ball
+    // Movable Spheres
+    this.addSphere({ x: 0, y: 0.5, z: 2.5 }, 0.5, 0xff0077, true);
+    this.addSphere({ x: -2, y: 0.75, z: -3 }, 0.75, 0x00aaff, true);
+    this.addSphere({ x: 2, y: 0.3, z: -3 }, 0.3, 0xffff00, true);
+    this.addSphere({ x: 1, y: 0.4, z: 0 }, 0.4, 0xff8800, true);
   }
 
   addMirrorPillar(pos, size) {
-    // 1. Static Physics Collider in Rapier
     const bodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(pos.x, pos.y, pos.z);
     const body = this.world.createRigidBody(bodyDesc);
     const collider = RAPIER.ColliderDesc.cuboid(size.x / 2, size.y / 2, size.z / 2);
     this.world.createCollider(collider, body);
 
-    // 2. Base Box Geometry Mesh with Dark Red Tint
     const pillarGroup = new THREE.Group();
     pillarGroup.position.set(pos.x, pos.y, pos.z);
 
@@ -114,21 +115,18 @@ export class Arena {
     );
     pillarGroup.add(baseMesh);
 
-    // 3. Attach Mirror Reflectors to front and side faces
     const mirrorOptions = {
       clipBias: 0.003,
       textureWidth: window.innerWidth * window.devicePixelRatio,
       textureHeight: window.innerHeight * window.devicePixelRatio,
-      color: 0xffaaaa // Subtitle red tint on reflection
+      color: 0xffaaaa
     };
 
-    // Front Face Mirror (+Z side)
     const frontMirrorGeo = new THREE.PlaneGeometry(size.x, size.y);
     const frontMirror = new Reflector(frontMirrorGeo, mirrorOptions);
     frontMirror.position.set(0, 0, size.z / 2 + 0.01);
     pillarGroup.add(frontMirror);
 
-    // Right Face Mirror (+X side)
     const rightMirrorGeo = new THREE.PlaneGeometry(size.z, size.y);
     const rightMirror = new Reflector(rightMirrorGeo, mirrorOptions);
     rightMirror.position.set(size.x / 2 + 0.01, 0, 0);
@@ -193,14 +191,17 @@ export class Arena {
     }
   }
 
-  render(robotCamera) {
+  render(robotCameras) {
     this.syncDynamicObjects();
 
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
 
-    if (robotCamera) {
-      this.pipRenderer.render(this.scene, robotCamera);
+    if (robotCameras?.left) {
+      this.leftPipRenderer.render(this.scene, robotCameras.left);
+    }
+    if (robotCameras?.right) {
+      this.rightPipRenderer.render(this.scene, robotCameras.right);
     }
   }
 

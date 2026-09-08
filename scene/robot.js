@@ -13,7 +13,7 @@ export class Robot {
     this.keys = { forward: false, backward: false, left: false, right: false };
 
     this.initPhysicsAndVisuals(initialPos);
-    this.initOnboardCamera();
+    this.initOnboardCameras();
     this.initRaycastVisual();
     this.initInputListeners();
   }
@@ -36,15 +36,16 @@ export class Robot {
     this.scene.add(this.mesh);
   }
 
-  // First-person robot camera position & near clip tuning
-  initOnboardCamera() {
-    // 1. Reduce near clip plane from 0.1 to 0.01 to prevent clipping close objects
-    this.camera = new THREE.PerspectiveCamera(70, 240 / 160, 0.01, 50);
+  // Setup dual left & right stereo camera rig
+  initOnboardCameras() {
+    const aspect = 180 / 120;
+    this.leftCamera = new THREE.PerspectiveCamera(70, aspect, 0.01, 50);
+    this.rightCamera = new THREE.PerspectiveCamera(70, aspect, 0.01, 50);
 
-    // 2. Shift offset slightly back (+Z local) and slightly higher (+Y)
-    // Local box dimensions are 1x1x1 (extent -0.5 to +0.5)
-    // Setting Z to 0.25 keeps the camera safely recessed inside the physical collider boundary
-    this.cameraOffset = new THREE.Vector3(0, 0.35, 0.25);
+    // Baseline separation: 0.2 units apart (0.1 units left/right of center)
+    const baselineOffset = 0.5;
+    this.leftCameraOffset = new THREE.Vector3(baselineOffset, 0.35, 0.25);
+    this.rightCameraOffset = new THREE.Vector3(-baselineOffset, 0.35, 0.25);
   }
 
   initRaycastVisual() {
@@ -102,15 +103,19 @@ export class Robot {
     this.mesh.position.set(pos.x, pos.y, pos.z);
     this.mesh.quaternion.set(rot.x, rot.y, rot.z, rot.w);
 
-    // Sync onboard camera position & orientation with body
     const q = this.mesh.quaternion.clone();
-    const localCamPos = this.cameraOffset.clone().applyQuaternion(q);
-    
-    this.camera.position.copy(this.mesh.position).add(localCamPos);
-    
-    // Look forward along local Z axis
-    const forwardPoint = new THREE.Vector3(0, 0, 10).applyQuaternion(q).add(this.mesh.position);
-    this.camera.lookAt(forwardPoint);
+
+    // Position and align Left Camera
+    const leftLocalPos = this.leftCameraOffset.clone().applyQuaternion(q);
+    this.leftCamera.position.copy(this.mesh.position).add(leftLocalPos);
+    const leftForward = new THREE.Vector3(-0.25, 0, 10).applyQuaternion(q).add(this.mesh.position);
+    this.leftCamera.lookAt(leftForward);
+
+    // Position and align Right Camera
+    const rightLocalPos = this.rightCameraOffset.clone().applyQuaternion(q);
+    this.rightCamera.position.copy(this.mesh.position).add(rightLocalPos);
+    const rightForward = new THREE.Vector3(0.25, 0, 10).applyQuaternion(q).add(this.mesh.position);
+    this.rightCamera.lookAt(rightForward);
   }
 
   getSensorReadings(dt) {
@@ -149,5 +154,13 @@ export class Robot {
     this.sensorRayVisual.scale.set(1, 1, distance);
 
     return { gyro, accel, distance };
+  }
+
+  // Returns both cameras for external rendering
+  get cameras() {
+    return {
+      left: this.leftCamera,
+      right: this.rightCamera
+    };
   }
 }

@@ -40,8 +40,8 @@ function animate() {
     distEl.innerText = `${sensors.distance.toFixed(2)} m`;
   }
 
-  // Render main viewport & pass onboard robot camera to PIP canvas
-  arena.render(robot?.camera, robot?.mesh);
+  // Render main viewport & pass onboard binocular cameras to PIP canvases
+  arena.render(robot?.cameras);
 }
 
 init();

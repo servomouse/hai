@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Lightweight Mobile Robot Env</title>
+  <title>Lightweight Mobile Robot Env - Binocular</title>
   <style>
     body { margin: 0; overflow: hidden; font-family: monospace; background-color: #1a1a1a; color: #00ffcc; }
     #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
@@ -10,7 +10,7 @@
     #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; max-width: 350px; pointer-events: none; z-index: 10; }
     #controls { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; z-index: 10; }
     
-    /* PIP Camera Viewport */
+    /* Dual PIP Camera Viewport */
     #pip-container {
       position: absolute;
       bottom: 20px;
@@ -18,11 +18,14 @@
       background: rgba(0,0,0,0.8);
       border: 2px solid #00ffcc;
       border-radius: 8px;
-      padding: 5px;
+      padding: 8px;
       z-index: 10;
     }
-    #pip-title { margin-bottom: 5px; text-align: center; font-size: 11px; }
-    #pip-canvas { width: 240px; height: 160px; display: block; border-radius: 4px; }
+    #pip-title { margin-bottom: 8px; text-align: center; font-size: 11px; font-weight: bold; }
+    .pip-views { display: flex; gap: 8px; }
+    .pip-view { text-align: center; }
+    .pip-view label { display: block; font-size: 10px; margin-bottom: 4px; color: #aaa; }
+    .pip-canvas { width: 180px; height: 120px; display: block; border-radius: 4px; border: 1px solid #333; }
 
     .val { color: #fff; }
   </style>
@@ -54,10 +57,19 @@
     Pan Camera: <span class="val">Right Click + Drag</span>
   </div>
 
-  <!-- Robot Camera PIP overlay -->
+  <!-- Robot Binocular Camera PIP overlay -->
   <div id="pip-container">
-    <div id="pip-title">ROBOT FPV CAMERA</div>
-    <canvas id="pip-canvas"></canvas>
+    <div id="pip-title">STEREO FPV CAMERAS</div>
+    <div class="pip-views">
+      <div class="pip-view">
+        <label>LEFT EYE</label>
+        <canvas id="pip-canvas-left" class="pip-canvas"></canvas>
+      </div>
+      <div class="pip-view">
+        <label>RIGHT EYE</label>
+        <canvas id="pip-canvas-right" class="pip-canvas"></canvas>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="./main.js"></script>
