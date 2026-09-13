@@ -49,6 +49,7 @@ export class Arena {
     this.controls.update();
 
     this.dynamicObjects = [];
+    this.reflectiveLights = [];
 
     this.setupLighting();
     this.setupVisualGrid();
@@ -57,15 +58,58 @@ export class Arena {
   }
 
   setupLighting() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    this.scene.add(ambientLight);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    this.scene.add(this.ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-    dirLight.position.set(10, 15, 10);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 1024;
-    dirLight.shadow.mapSize.height = 1024;
-    this.scene.add(dirLight);
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    this.directionalLight.position.set(10, 15, 10);
+    this.directionalLight.castShadow = true;
+    this.directionalLight.shadow.mapSize.width = 1024;
+    this.directionalLight.shadow.mapSize.height = 1024;
+    this.scene.add(this.directionalLight);
+  }
+
+  registerReflectiveLight(sourceLight) {
+    for (const surface of this.reflectiveSurfaces ?? []) {
+      const reflectedLight = new THREE.SpotLight(
+        sourceLight.color,
+        sourceLight.intensity,
+        sourceLight.distance,
+        sourceLight.angle,
+        sourceLight.penumbra,
+        sourceLight.decay
+      );
+      reflectedLight.castShadow = sourceLight.castShadow;
+      this.scene.add(reflectedLight);
+      this.scene.add(reflectedLight.target);
+      this.reflectiveLights.push({ sourceLight, surface, reflectedLight });
+    }
+  }
+
+  updateReflectiveLights() {
+    const sourcePosition = new THREE.Vector3();
+    const sourceTarget = new THREE.Vector3();
+
+    for (const entry of this.reflectiveLights) {
+      const { sourceLight, surface, reflectedLight } = entry;
+      sourceLight.getWorldPosition(sourcePosition);
+      sourceLight.target.getWorldPosition(sourceTarget);
+
+      reflectedLight.position.copy(this.reflectPoint(sourcePosition, surface));
+      reflectedLight.target.position.copy(this.reflectPoint(sourceTarget, surface));
+      reflectedLight.target.updateMatrixWorld();
+      reflectedLight.visible = sourceLight.visible;
+    }
+  }
+
+  reflectPoint(point, surface) {
+    const offset = point.clone().sub(surface.point);
+    return point.clone().sub(surface.normal.clone().multiplyScalar(2 * offset.dot(surface.normal)));
+  }
+
+  setGlobalLightingEnabled(enabled) {
+    this.ambientLight.visible = enabled;
+    this.directionalLight.visible = enabled;
   }
 
   setupVisualGrid() {
@@ -133,6 +177,18 @@ export class Arena {
     rightMirror.rotation.y = Math.PI / 2;
     pillarGroup.add(rightMirror);
 
+    this.reflectiveSurfaces = [
+      ...(this.reflectiveSurfaces ?? []),
+      {
+        point: new THREE.Vector3(pos.x, pos.y, pos.z + size.z / 2 + 0.01),
+        normal: new THREE.Vector3(0, 0, 1)
+      },
+      {
+        point: new THREE.Vector3(pos.x + size.x / 2 + 0.01, pos.y, pos.z),
+        normal: new THREE.Vector3(1, 0, 0)
+      }
+    ];
+
     this.scene.add(pillarGroup);
   }
 
@@ -193,6 +249,7 @@ export class Arena {
 
   render(robotCameras) {
     this.syncDynamicObjects();
+    this.updateReflectiveLights();
 
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
