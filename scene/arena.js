@@ -81,18 +81,27 @@ export class Arena {
   }
 
   setupVisualGrid() {
+    const floorTexture = new THREE.TextureLoader().load('./Wooden_desk_surface.jpg', (texture) => {
+      const imageAspect = texture.image.width / texture.image.height;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(
+        imageAspect >= 1 ? imageAspect : 1,
+        imageAspect >= 1 ? 1 : 1 / imageAspect
+      );
+      texture.needsUpdate = true;
+    });
+    floorTexture.colorSpace = THREE.SRGBColorSpace;
+
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(20, 20),
-      new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.85 })
+      new THREE.MeshStandardMaterial({ map: floorTexture, roughness: 0.85 })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = 0.101;
     floor.receiveShadow = true;
     this.scene.add(floor);
 
-    const grid = new THREE.GridHelper(20, 20, 0x00ffcc, 0x444444);
-    grid.position.y = 0.105;
-    this.scene.add(grid);
   }
 
   buildPhysicsEnvironment(world) {
