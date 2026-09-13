@@ -37,7 +37,7 @@ function animate() {
   const dt = clock.getDelta();
 
   if (world && dt > 0) {
-    robot.updatePhysics();
+    robot.updatePhysics(dt);
     world.step();
     robot.syncVisuals();
 

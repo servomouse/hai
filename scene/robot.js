@@ -170,6 +170,9 @@ export class Robot {
     this.prevVelocity = { x: 0, y: 0, z: 0 };
     this.moveSpeed = 4.0;
     this.turnSpeed = 2.5;
+    this.headMoveSpeed = 1.5;
+    this.headYaw = 0;
+    this.headPitch = 0;
 
     // Smoothing factor for Exponential Moving Average (EMA) [0.0 = max smooth/slow, 1.0 = raw/no filter]
     this.smoothingFactor = 0.5;
@@ -180,7 +183,16 @@ export class Robot {
     this.filteredDistance = 8.0;
     this.maxSensorDistance = 20.0;
 
-    this.keys = { forward: false, backward: false, left: false, right: false };
+    this.keys = {
+      forward: false,
+      backward: false,
+      left: false,
+      right: false,
+      headUp: false,
+      headDown: false,
+      headLeft: false,
+      headRight: false
+    };
 
     this.initPhysicsAndVisuals(initialPos);
     this.initOnboardCameras();
@@ -284,14 +296,18 @@ export class Robot {
 
   handleKey(code, isPressed) {
     switch (code) {
-      case 'KeyW': case 'ArrowUp': this.keys.forward = isPressed; break;
-      case 'KeyS': case 'ArrowDown': this.keys.backward = isPressed; break;
-      case 'KeyA': case 'ArrowLeft': this.keys.left = isPressed; break;
-      case 'KeyD': case 'ArrowRight': this.keys.right = isPressed; break;
+      case 'ArrowUp': this.keys.forward = isPressed; break;
+      case 'ArrowDown': this.keys.backward = isPressed; break;
+      case 'ArrowLeft': this.keys.left = isPressed; break;
+      case 'ArrowRight': this.keys.right = isPressed; break;
+      case 'KeyW': this.keys.headUp = isPressed; break;
+      case 'KeyS': this.keys.headDown = isPressed; break;
+      case 'KeyA': this.keys.headLeft = isPressed; break;
+      case 'KeyD': this.keys.headRight = isPressed; break;
     }
   }
 
-  updatePhysics() {
+  updatePhysics(dt = 1 / 60) {
     if (!this.body) return;
 
     let turn = 0;
@@ -312,6 +328,15 @@ export class Robot {
       { x: forward.x * drive, y: currentVel.y, z: forward.z * drive },
       true
     );
+
+    if (this.keys.headUp) this.headPitch += this.headMoveSpeed * dt;
+    if (this.keys.headDown) this.headPitch -= this.headMoveSpeed * dt;
+    if (this.keys.headLeft) this.headYaw += this.headMoveSpeed * dt;
+    if (this.keys.headRight) this.headYaw -= this.headMoveSpeed * dt;
+
+    const maxHeadRotation = Math.PI / 2;
+    this.headPitch = THREE.MathUtils.clamp(this.headPitch, -maxHeadRotation, maxHeadRotation);
+    this.headYaw = THREE.MathUtils.clamp(this.headYaw, -maxHeadRotation, maxHeadRotation);
   }
 
   syncVisuals() {
@@ -319,6 +344,7 @@ export class Robot {
     const rot = this.body.rotation();
     this.mesh.position.set(pos.x, pos.y + this.visualHeightOffset, pos.z);
     this.mesh.quaternion.set(rot.x, rot.y, rot.z, rot.w);
+    this.mesh.frames.base_link.rotation.set(this.headPitch, this.headYaw, 0);
     this.mesh.updateMatrixWorld(true);
 
   }
