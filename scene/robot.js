@@ -4,6 +4,21 @@ import URDFLoader from 'urdf-loader';
 
 const ROBOT_URDF = `<?xml version="1.0"?>
 <robot name="binocular_robot">
+  <link name="chassis_link">
+    <visual>
+      <geometry>
+        <box size="1.4 0.4 1.8" />
+      </geometry>
+      <material name="chassis_dark">
+        <color rgba="0.08 0.1 0.14 1" />
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="1.4 0.4 1.8" />
+      </geometry>
+    </collision>
+  </link>
   <link name="base_link">
     <visual>
       <geometry>
@@ -59,6 +74,51 @@ const ROBOT_URDF = `<?xml version="1.0"?>
       </material>
     </visual>
   </link>
+  <link name="front_left_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.22" length="0.16" />
+      </geometry>
+      <material name="wheel_rubber">
+        <color rgba="0.02 0.02 0.025 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="front_right_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.22" length="0.16" />
+      </geometry>
+      <material name="wheel_rubber">
+        <color rgba="0.02 0.02 0.025 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="rear_left_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.22" length="0.16" />
+      </geometry>
+      <material name="wheel_rubber">
+        <color rgba="0.02 0.02 0.025 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="rear_right_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.22" length="0.16" />
+      </geometry>
+      <material name="wheel_rubber">
+        <color rgba="0.02 0.02 0.025 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="head_mount" type="fixed">
+    <parent link="chassis_link" />
+    <child link="base_link" />
+    <origin xyz="0 0.72 0" rpy="0 0 0" />
+  </joint>
   <joint name="left_camera_mount" type="fixed">
     <parent link="base_link" />
     <child link="left_camera_link" />
@@ -79,12 +139,33 @@ const ROBOT_URDF = `<?xml version="1.0"?>
     <child link="right_distance_sensor_link" />
     <origin xyz="-0.59 -0.3 0.41" rpy="0 0 0" />
   </joint>
+  <joint name="front_left_wheel_mount" type="fixed">
+    <parent link="chassis_link" />
+    <child link="front_left_wheel_link" />
+    <origin xyz="0.72 -0.28 0.58" rpy="0 1.5708 0" />
+  </joint>
+  <joint name="front_right_wheel_mount" type="fixed">
+    <parent link="chassis_link" />
+    <child link="front_right_wheel_link" />
+    <origin xyz="-0.72 -0.28 0.58" rpy="0 1.5708 0" />
+  </joint>
+  <joint name="rear_left_wheel_mount" type="fixed">
+    <parent link="chassis_link" />
+    <child link="rear_left_wheel_link" />
+    <origin xyz="0.72 -0.28 -0.58" rpy="0 1.5708 0" />
+  </joint>
+  <joint name="rear_right_wheel_mount" type="fixed">
+    <parent link="chassis_link" />
+    <child link="rear_right_wheel_link" />
+    <origin xyz="-0.72 -0.28 -0.58" rpy="0 1.5708 0" />
+  </joint>
 </robot>`;
 
 export class Robot {
   constructor(world, scene, initialPos = { x: 0, y: 0.6, z: 0 }) {
     this.world = world;
     this.scene = scene;
+    this.visualHeightOffset = 0.3;
 
     this.prevVelocity = { x: 0, y: 0, z: 0 };
     this.moveSpeed = 4.0;
@@ -116,7 +197,7 @@ export class Robot {
       
     this.body = this.world.createRigidBody(bodyDesc);
 
-    const colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+    const colliderDesc = RAPIER.ColliderDesc.cuboid(0.7, 0.2, 0.9);
     this.collider = this.world.createCollider(colliderDesc, this.body);
 
     const urdfLoader = new URDFLoader();
@@ -236,7 +317,7 @@ export class Robot {
   syncVisuals() {
     const pos = this.body.translation();
     const rot = this.body.rotation();
-    this.mesh.position.set(pos.x, pos.y, pos.z);
+    this.mesh.position.set(pos.x, pos.y + this.visualHeightOffset, pos.z);
     this.mesh.quaternion.set(rot.x, rot.y, rot.z, rot.w);
     this.mesh.updateMatrixWorld(true);
 
