@@ -149,6 +149,10 @@ export class Robot {
   initFlashlight() {
     this.flashlightFrame = this.mesh.frames.left_flashlight_link;
     this.flashlight = new THREE.SpotLight(0xffffff, 5, this.maxSensorDistance, Math.PI / 7, 0.35, 1.5);
+    this.flashlight.castShadow = true;
+    this.flashlight.shadow.mapSize.width = 512;
+    this.flashlight.shadow.mapSize.height = 512;
+    this.flashlight.shadow.bias = -0.0005;
     this.flashlight.position.set(0, 0, 0);
     this.flashlight.target.position.set(0, 0, 1);
     this.flashlightFrame.add(this.flashlight);

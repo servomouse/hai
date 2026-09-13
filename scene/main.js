@@ -21,7 +21,6 @@ async function init() {
   arena.buildPhysicsEnvironment(world);
 
   robot = new Robot(world, arena.scene);
-  arena.registerReflectiveLight(robot.flashlight);
   globalLightingToggle.addEventListener('change', () => {
     arena.setGlobalLightingEnabled(globalLightingToggle.checked);
   });

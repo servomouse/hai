@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Reflector } from 'three/addons/objects/Reflector.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 export class Arena {
@@ -17,6 +16,7 @@ export class Arena {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
 
     // Dual PIP Canvas Renderers
@@ -25,9 +25,11 @@ export class Arena {
 
     this.leftPipRenderer = new THREE.WebGLRenderer({ canvas: leftCanvas, antialias: true });
     this.leftPipRenderer.setSize(180, 120);
+    this.leftPipRenderer.shadowMap.enabled = true;
 
     this.rightPipRenderer = new THREE.WebGLRenderer({ canvas: rightCanvas, antialias: true });
     this.rightPipRenderer.setSize(180, 120);
+    this.rightPipRenderer.shadowMap.enabled = true;
 
     // OrbitControls Setup
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -49,7 +51,6 @@ export class Arena {
     this.controls.update();
 
     this.dynamicObjects = [];
-    this.reflectiveLights = [];
 
     this.setupLighting();
     this.setupVisualGrid();
@@ -66,45 +67,12 @@ export class Arena {
     this.directionalLight.castShadow = true;
     this.directionalLight.shadow.mapSize.width = 1024;
     this.directionalLight.shadow.mapSize.height = 1024;
+    this.directionalLight.shadow.camera.left = -15;
+    this.directionalLight.shadow.camera.right = 15;
+    this.directionalLight.shadow.camera.top = 15;
+    this.directionalLight.shadow.camera.bottom = -15;
+    this.directionalLight.shadow.bias = -0.0005;
     this.scene.add(this.directionalLight);
-  }
-
-  registerReflectiveLight(sourceLight) {
-    for (const surface of this.reflectiveSurfaces ?? []) {
-      const reflectedLight = new THREE.SpotLight(
-        sourceLight.color,
-        sourceLight.intensity,
-        sourceLight.distance,
-        sourceLight.angle,
-        sourceLight.penumbra,
-        sourceLight.decay
-      );
-      reflectedLight.castShadow = sourceLight.castShadow;
-      this.scene.add(reflectedLight);
-      this.scene.add(reflectedLight.target);
-      this.reflectiveLights.push({ sourceLight, surface, reflectedLight });
-    }
-  }
-
-  updateReflectiveLights() {
-    const sourcePosition = new THREE.Vector3();
-    const sourceTarget = new THREE.Vector3();
-
-    for (const entry of this.reflectiveLights) {
-      const { sourceLight, surface, reflectedLight } = entry;
-      sourceLight.getWorldPosition(sourcePosition);
-      sourceLight.target.getWorldPosition(sourceTarget);
-
-      reflectedLight.position.copy(this.reflectPoint(sourcePosition, surface));
-      reflectedLight.target.position.copy(this.reflectPoint(sourceTarget, surface));
-      reflectedLight.target.updateMatrixWorld();
-      reflectedLight.visible = sourceLight.visible;
-    }
-  }
-
-  reflectPoint(point, surface) {
-    const offset = point.clone().sub(surface.point);
-    return point.clone().sub(surface.normal.clone().multiplyScalar(2 * offset.dot(surface.normal)));
   }
 
   setGlobalLightingEnabled(enabled) {
@@ -113,7 +81,17 @@ export class Arena {
   }
 
   setupVisualGrid() {
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(20, 20),
+      new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.85 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0.101;
+    floor.receiveShadow = true;
+    this.scene.add(floor);
+
     const grid = new THREE.GridHelper(20, 20, 0x00ffcc, 0x444444);
+    grid.position.y = 0.105;
     this.scene.add(grid);
   }
 
@@ -157,37 +135,9 @@ export class Arena {
       new THREE.BoxGeometry(size.x, size.y, size.z),
       new THREE.MeshStandardMaterial({ color: 0x330000, roughness: 0.2 })
     );
+    baseMesh.castShadow = true;
+    baseMesh.receiveShadow = true;
     pillarGroup.add(baseMesh);
-
-    const mirrorOptions = {
-      clipBias: 0.003,
-      textureWidth: window.innerWidth * window.devicePixelRatio,
-      textureHeight: window.innerHeight * window.devicePixelRatio,
-      color: 0xffaaaa
-    };
-
-    const frontMirrorGeo = new THREE.PlaneGeometry(size.x, size.y);
-    const frontMirror = new Reflector(frontMirrorGeo, mirrorOptions);
-    frontMirror.position.set(0, 0, size.z / 2 + 0.01);
-    pillarGroup.add(frontMirror);
-
-    const rightMirrorGeo = new THREE.PlaneGeometry(size.z, size.y);
-    const rightMirror = new Reflector(rightMirrorGeo, mirrorOptions);
-    rightMirror.position.set(size.x / 2 + 0.01, 0, 0);
-    rightMirror.rotation.y = Math.PI / 2;
-    pillarGroup.add(rightMirror);
-
-    this.reflectiveSurfaces = [
-      ...(this.reflectiveSurfaces ?? []),
-      {
-        point: new THREE.Vector3(pos.x, pos.y, pos.z + size.z / 2 + 0.01),
-        normal: new THREE.Vector3(0, 0, 1)
-      },
-      {
-        point: new THREE.Vector3(pos.x + size.x / 2 + 0.01, pos.y, pos.z),
-        normal: new THREE.Vector3(1, 0, 0)
-      }
-    ];
 
     this.scene.add(pillarGroup);
   }
@@ -249,7 +199,6 @@ export class Arena {
 
   render(robotCameras) {
     this.syncDynamicObjects();
-    this.updateReflectiveLights();
 
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
