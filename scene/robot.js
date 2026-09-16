@@ -176,6 +176,8 @@ export class Robot {
     this.prevVelocity = { x: 0, y: 0, z: 0 };
     this.moveSpeed = 4.0;
     this.turnSpeed = 2.5;
+    this.leftWheelSpeed = 0;
+    this.rightWheelSpeed = 0;
     this.headMoveSpeed = 1.5;
     this.headYaw = 0;
     this.headPitch = 0;
@@ -370,14 +372,21 @@ export class Robot {
   updatePhysics(dt = 1 / 60) {
     if (!this.body) return;
 
-    let turn = 0;
-    if (this.keys.left) turn += this.turnSpeed;
-    if (this.keys.right) turn -= this.turnSpeed;
-    this.body.setAngvel({ x: 0, y: turn, z: 0 }, true);
+    const baseWheelSpeed = this.keys.forward ? 0.5 : this.keys.backward ? -0.5 : 0;
+    this.leftWheelSpeed = THREE.MathUtils.clamp(
+      baseWheelSpeed + (this.keys.right ? 0.25 : 0) - (this.keys.left ? 0.25 : 0),
+      -1,
+      1
+    );
+    this.rightWheelSpeed = THREE.MathUtils.clamp(
+      baseWheelSpeed + (this.keys.left ? 0.25 : 0) - (this.keys.right ? 0.25 : 0),
+      -1,
+      1
+    );
 
-    let drive = 0;
-    if (this.keys.forward) drive += this.moveSpeed;
-    if (this.keys.backward) drive -= this.moveSpeed;
+    const drive = ((this.leftWheelSpeed + this.rightWheelSpeed) / 2) * this.moveSpeed;
+    const turn = (this.rightWheelSpeed - this.leftWheelSpeed) * this.turnSpeed;
+    this.body.setAngvel({ x: 0, y: turn, z: 0 }, true);
 
     const rot = this.body.rotation();
     const q = new THREE.Quaternion(rot.x, rot.y, rot.z, rot.w);
