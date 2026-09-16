@@ -74,6 +74,7 @@ const ROBOT_URDF = `<?xml version="1.0"?>
       </material>
     </visual>
   </link>
+  <link name="led_matrix_link" />
   <link name="front_left_wheel_link">
     <visual>
       <geometry>
@@ -139,6 +140,11 @@ const ROBOT_URDF = `<?xml version="1.0"?>
     <child link="right_distance_sensor_link" />
     <origin xyz="-0.59 -0.3 0.41" rpy="0 0 0" />
   </joint>
+  <joint name="led_matrix_mount" type="fixed">
+    <parent link="base_link" />
+    <child link="led_matrix_link" />
+    <origin xyz="0 0 0.51" rpy="0 0 0" />
+  </joint>
   <joint name="front_left_wheel_mount" type="fixed">
     <parent link="chassis_link" />
     <child link="front_left_wheel_link" />
@@ -197,6 +203,7 @@ export class Robot {
     this.initPhysicsAndVisuals(initialPos);
     this.initOnboardCameras();
     this.initFlashlight();
+    this.initLedMatrix();
     this.initRaycastVisual();
     this.initInputListeners();
   }
@@ -274,6 +281,59 @@ export class Robot {
       this.flashlightLensMaterials[1].color.setHex(enabled ? 0xffffff : 0x222222);
       this.flashlightLensMaterials[1].emissive.setHex(enabled ? 0xffffff : 0x000000);
       this.flashlightLensMaterials[1].emissiveIntensity = enabled ? 2 : 0;
+    }
+  }
+
+  initLedMatrix() {
+    this.ledMatrixFrame = this.mesh.frames.led_matrix_link;
+    this.leds = [];
+
+    const ledGeometry = new THREE.CylinderGeometry(0.035, 0.035, 0.025, 12);
+    const spacing = 0.095;
+    const matrixSize = spacing * 7;
+
+    for (let row = 0; row < 8; row += 1) {
+      for (let column = 0; column < 8; column += 1) {
+        const ledMaterial = new THREE.MeshStandardMaterial({
+          color: 0x180000,
+          emissive: 0x000000,
+          roughness: 0.35
+        });
+        const led = new THREE.Mesh(ledGeometry, ledMaterial);
+        led.rotation.x = Math.PI / 2;
+        led.position.set(
+          column * spacing - matrixSize / 2,
+          matrixSize / 2 - row * spacing,
+          0.015
+        );
+        led.castShadow = true;
+        led.receiveShadow = true;
+        this.ledMatrixFrame.add(led);
+        this.leds.push({ led, material: ledMaterial });
+      }
+    }
+
+    this.setLedMatrix(new Array(8).fill(0));
+  }
+
+  setLedMatrix(rows) {
+    if (!Array.isArray(rows) || rows.length !== 8) {
+      throw new TypeError('LED matrix requires an array of 8 byte values.');
+    }
+
+    for (let row = 0; row < 8; row += 1) {
+      const value = Number(rows[row]);
+      if (!Number.isInteger(value) || value < 0 || value > 255) {
+        throw new TypeError('LED matrix rows must be bytes from 0 to 255.');
+      }
+
+      for (let column = 0; column < 8; column += 1) {
+        const isOn = (value & (1 << (7 - column))) !== 0;
+        const led = this.leds[row * 8 + column];
+        led.material.color.setHex(isOn ? 0xff2020 : 0x180000);
+        led.material.emissive.setHex(isOn ? 0xff0000 : 0x000000);
+        led.material.emissiveIntensity = isOn ? 3 : 0;
+      }
     }
   }
 

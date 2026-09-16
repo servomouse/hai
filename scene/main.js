@@ -27,6 +27,7 @@ async function init() {
   flashlightToggle.addEventListener('change', () => {
     robot.setFlashlightEnabled(flashlightToggle.checked);
   });
+  robot.setLedMatrix([0, 241, 27, 69, 31, 8, 126, 53])
 
   animate();
 }
