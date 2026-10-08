@@ -17,6 +17,7 @@ from arch import (
     NUM_TOKENS,
     EOS_THRESHOLD,
 )
+from custom_loss import compute_progressive_residual_loss, compute_marginal_contribution_loss, compute_topk_dominance_loss
 
 # Configuration & Constants
 DATASET_PATH = "D:/Work/Projects/HAI/Stereo_image_dataset_generator/cropped_dataset/images_128"
@@ -25,7 +26,7 @@ CHECKPOINT_PATH = "./checkpoint.pth"
 
 NUM_IMAGES_TO_LOAD = 512
 BATCH_SIZE = 16
-EPOCHS = 100
+EPOCHS = 1000
 LEARNING_RATE = 1e-4
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -73,9 +74,7 @@ class InMemoryDataset(Dataset):
         return self.images[idx]
 
 
-def get_errors(
-    partial_images: list[torch.Tensor], input_image: torch.Tensor
-) -> list[torch.Tensor]:
+def get_errors_competitive(partial_images: list[torch.Tensor], input_image: torch.Tensor, loss_func=F.l1_loss,) -> list[torch.Tensor]:  # Do not modify!
     """
     Computes residual target loss per token decoding step.
 
@@ -91,12 +90,190 @@ def get_errors(
     reconstructed_image = torch.zeros_like(input_image)
 
     for i in range(len(partial_images)):
-        # Target for step i is whatever input details haven't been reconstructed yet
+        # For the first token, limit the target residual to roughly 10% of the
+        # remaining image details so it learns a coarse approximation instead of
+        # reconstructing the full image immediately.
+        residual = input_image - reconstructed_image.detach()
+        if i == 0:
+            target_residual = residual * 0.1
+        else:
+            target_residual = residual
+
+        # Use per-pixel error so poorly reconstructed pixels contribute less
+        # to the target while preserving the image tensor's shape.
+        pixel_error = F.l1_loss(
+            partial_images[i].detach(), target_residual, reduction="none"
+        )
+        weighted_target_residual = target_residual * torch.clamp(
+            1.0 - pixel_error, min=0.0, max=1.0
+        )
+
+        step_loss = loss_func(partial_images[i], weighted_target_residual)
+        # step_loss = ExponentialQualityLoss()(partial_images[i], target_residual)
+        # step_loss = nn.MSELoss()(partial_images[i], target_residual)
+        # step_loss = F.l1_loss(partial_images[i], target_residual)
+        errors.append(step_loss)
+
+        # Update cumulative reconstructed image for the next step's target calculation
+        reconstructed_image = torch.clamp(
+            reconstructed_image + partial_images[i], -1.0, 1.0
+        )
+
+    return errors
+
+
+def get_errors_masked(partial_images: list[torch.Tensor], input_image: torch.Tensor, loss_func) -> list[torch.Tensor]: # Do not modify!
+    """
+    Computes masked target loss for each token's image region.
+
+    Args:
+        partial_images: List of individual token decoder outputs [(B, 3, 128, 128), ...]
+        input_image: Target ground truth image tensor (B, 3, 128, 128)
+
+    Returns:
+        errors: List of scalar loss tensors [loss_0, loss_1, ..., loss_N-1]
+    """
+    regions = [
+        (0, 0, 64, 64),
+        (32, 0, 96, 64),
+        (64, 0, 128, 64),
+        (0, 32, 64, 96),
+        (64, 32, 128, 96),
+        (0, 64, 64, 128),
+        (32, 64, 96, 128),
+        (64, 64, 128, 128),
+    ]
+    errors = []
+    # Blank base image (zeros in [-1, 1] range represents mid-gray neutral base)
+    reconstructed_image = torch.zeros_like(input_image)
+    for i in range(len(partial_images)):
         target_residual = input_image - reconstructed_image.detach()
+        x_start, y_start, x_end, y_end = regions[i]
+        mask = torch.zeros_like(input_image)
+        mask[..., y_start:y_end, x_start:x_end] = 1
+        masked_input = target_residual * mask
+
+        step_loss = loss_func(partial_images[i], masked_input)
+        errors.append(step_loss)
+
+        # Update cumulative reconstructed image for the next step's target calculation
+        reconstructed_image = torch.clamp(
+            reconstructed_image + partial_images[i], -1.0, 1.0
+        )
+
+    return errors
+
+
+def get_errors_prop(partial_images: list[torch.Tensor], input_image: torch.Tensor, loss_func) -> list[torch.Tensor]:
+    num_tokens = len(partial_images)
+
+    # Stack along a new dimension (Tokens, Batch, Channels, Height, Width)
+    stacked_partials = torch.stack(partial_images, dim=0)  # Shape: [N, B, C, H, W]
+
+    # Absolute contribution of each token per pixel
+    abs_contributions = torch.abs(stacked_partials)  # Shape: [N, B, C, H, W]
+
+    # Find the top-3 contributing tokens along the token dimension (dim=0)
+    # top_indices shape: [3, B, C, H, W]
+    _, top_indices = torch.topk(abs_contributions, k=min(3, num_tokens), dim=0)
+
+    # Create a mask for each token: check if token ID (0..N-1) appears anywhere in top_indices [3, B, C, H, W]
+    # token_ids shape: [N, 1, 1, 1, 1, 1] vs top_indices shape: [1, 3, B, C, H, W]
+    token_ids = torch.arange(num_tokens, device=input_image.device).view(-1, 1, 1, 1, 1, 1)
+    expanded_top = top_indices.unsqueeze(0)  # Shape: [1, 3, B, C, H, W]
+
+    # Match along the top-k dimension (dim=1 in expanded_top), resulting in [N, B, C, H, W]
+    is_top3_mask = (token_ids == expanded_top).any(dim=1)
+
+    # Zero out contributions outside top-3
+    top3_contributions = torch.where(is_top3_mask, abs_contributions, 0.0)
+
+    # Sum contributions of top 3 for normalization
+    top3_sum = top3_contributions.sum(dim=0, keepdim=True)  # Shape: [1, B, C, H, W]
+
+    # Calculate proportional weights (avoiding division by zero)
+    weights = torch.where(top3_sum > 1e-8, top3_contributions / top3_sum, 0.0)
+
+    # Distribute input target image proportionally to each token
+    targets = weights * input_image.unsqueeze(0)  # Shape: [N, B, C, H, W]
+
+    # Compute loss per token
+    errors = [loss_func(partial_images[i], targets[i]) for i in range(num_tokens)]
+
+    return errors
+
+
+def get_errors_composite(partial_images: list[torch.Tensor], input_image: torch.Tensor, loss_func) -> list[torch.Tensor]:
+    """
+    Computes each token's change in reconstruction loss when that token is removed.
+
+    Args:
+        partial_images: List of individual token decoder outputs [(B, 3, 128, 128), ...]
+        input_image: Target ground truth image tensor (B, 3, 128, 128)
+
+    Returns:
+        errors: List of scalar loss changes [error_0, error_1, ..., error_N-1]
+    """
+    if not partial_images:
+        return []
+
+    opacity = 0.5
+
+    def composite(images: list[torch.Tensor]) -> torch.Tensor:
+        reconstructed_image = torch.zeros_like(input_image)
+        for image in images:
+            reconstructed_image = (
+                opacity * image + (1.0 - opacity) * reconstructed_image
+            )
+        return reconstructed_image
+
+    total_error = loss_func(composite(partial_images), input_image)
+    dropout_index = torch.randint(len(partial_images), ()).item()
+    errors = []
+
+    for i in range(len(partial_images)):
+        if i == dropout_index:
+            errors.append(total_error * 0.0)
+            continue
+
+        without_image = partial_images[:i] + partial_images[i + 1 :]
+        excluded_error = loss_func(composite(without_image), input_image)
+        errors.append(excluded_error - total_error)
+
+    return errors
+
+
+def get_errors_simple(partial_images: list[torch.Tensor], input_image: torch.Tensor, loss_func) -> list[torch.Tensor]: # Do not modify!
+    """
+    Computes residual target loss per token decoding step.
+
+    Args:
+        partial_images: List of individual token decoder outputs [(B, 3, 128, 128), ...]
+        input_image: Target ground truth image tensor (B, 3, 128, 128)
+
+    Returns:
+        errors: List of scalar loss tensors [loss_0, loss_1, ..., loss_N-1]
+    """
+    errors = []
+    # Blank base image (zeros in [-1, 1] range represents mid-gray neutral base)
+    reconstructed_image = torch.zeros_like(input_image)
+
+    for i in range(len(partial_images)):
+        # For the first token, limit the target residual to roughly 10% of the
+        # remaining image details so it learns a coarse approximation instead of
+        # reconstructing the full image immediately.
+        residual = input_image - reconstructed_image.detach()
+        if i == 0:
+            target_residual = residual * 0.1
+        else:
+            target_residual = residual
 
         # Loss evaluates how accurately partial_images[i] predicts target_residual
         # Using L1 loss (or L2/MSE) per pixel
-        step_loss = F.l1_loss(partial_images[i], target_residual)
+        step_loss = loss_func(partial_images[i], target_residual)
+        # step_loss = ExponentialQualityLoss()(partial_images[i], target_residual)
+        # step_loss = nn.MSELoss()(partial_images[i], target_residual)
+        # step_loss = F.l1_loss(partial_images[i], target_residual)
         errors.append(step_loss)
 
         # Update cumulative reconstructed image for the next step's target calculation
@@ -182,7 +359,7 @@ def train():
     # 2. Model & Optimizer
     model = RecursiveAutoencoder().to(DEVICE)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
-
+    
     start_epoch = 1
 
     # 3. Checkpoint Loading
@@ -199,7 +376,7 @@ def train():
     # 4. Training Loop
     for epoch in range(start_epoch, EPOCHS + 1):
         model.train()
-        total_step_errors = [0.0] * NUM_TOKENS
+        total_progressive_loss = 0.0
         total_eos_loss = 0.0
 
         for batch in dataloader:
@@ -210,30 +387,21 @@ def train():
             tokens, eos_probs = model.encode(batch)
             part_images = model.decode(tokens)
 
-            step_errors = get_errors(part_images, batch)
-
-            # Calculate EOS loss
-            eos_loss = compute_eos_loss(eos_probs)
-
-            for step_error in step_errors:
-                step_error.backward(retain_graph=True)
-            (0.1 * eos_loss).backward()
+            stacked_part_images = torch.stack(part_images, dim=1)
+            # progressive_loss = compute_marginal_contribution_loss(stacked_part_images, batch)
+            progressive_loss = compute_topk_dominance_loss(stacked_part_images, batch)
+            # progressive_loss = compute_progressive_residual_loss(stacked_part_images, batch)
+            progressive_loss.backward()
             optimizer.step()
 
-            for index, step_error in enumerate(step_errors):
-                total_step_errors[index] += step_error.item()
-            total_eos_loss += eos_loss.item()
+            total_progressive_loss += progressive_loss.item()
 
-        avg_step_errors = [
-            step_total / len(dataloader) for step_total in total_step_errors
-        ]
-        avg_eos_loss = total_eos_loss / len(dataloader)
-        formatted_errors = ", ".join(
-            f"{error:.6f}" for error in avg_step_errors
-        )
+        avg_progressive_loss = total_progressive_loss / len(dataloader)
+        # avg_eos_loss = total_eos_loss / len(dataloader)
         print(
-            f"Epoch [{epoch}/{EPOCHS}] - Step errors: [{formatted_errors}] "
-            f"- EOS loss: {avg_eos_loss:.6f}"
+            f"Epoch [{epoch}/{EPOCHS}] - Progressive residual loss: "
+            f"{avg_progressive_loss:.6f} "
+            # f"- EOS loss: {avg_eos_loss:.6f}"
         )
 
         # Save Checkpoint
@@ -242,8 +410,8 @@ def train():
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
-                "step_errors": avg_step_errors,
-                "eos_loss": avg_eos_loss,
+                "progressive_residual_loss": avg_progressive_loss,
+                # "eos_loss": avg_eos_loss,
             },
             CHECKPOINT_PATH,
         )
@@ -254,3 +422,29 @@ def train():
 
 if __name__ == "__main__":
     train()
+    # train_single()
+
+
+# def get_tokens(image):
+#     latent_vector = primary_encoder(image) # Simple CNN + linear
+
+#     tokens = []
+#     reminder = latent_vector
+#     for _ in range(MAX_NUM_TOKENS):
+#         t = token_head(reminder)
+#         r = reminder_head(reminder, t)
+#         # eos = eos_head(r)   # Not implemented yet
+#         tokens.append(t)
+#         reminder = r
+#         if eos > EOS_THRESHOLD:
+#             break
+#     return tokens
+
+# def decode_tokens(tokens):
+#     reconstructed_images = []
+#     for t in tokens:
+#         # Decoder decodes each token into a full-sized image
+#         # On the later stage, the images are combined together
+#         # usiing alpha compositing
+#         reconstructed_images.append(decoder(t))
+#     return reconstructed_images

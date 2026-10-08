@@ -3,8 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 LATENT_DIM = 128
-TOKEN_DIM = 32
-NUM_TOKENS = 10
+TOKEN_DIM = 16
+NUM_TOKENS = 8
 EOS_THRESHOLD = 0.5
 
 
@@ -92,7 +92,7 @@ class SubtractTokenModule(nn.Module):
 
         # 2. Compute remaining residual
         combined_token = torch.cat([vector, token], dim=-1)
-        residual = vector - self.residual_mlp(combined_token)
+        residual = self.residual_mlp(combined_token)
 
         # 3. Estimate EOS probability
         combined_eos = torch.cat([token, residual], dim=-1)
@@ -124,14 +124,15 @@ class RecursiveTokenizer(nn.Module):
         eos_probs = []
 
         for _ in range(self.max_tokens):
-            token, eos, remainder = self.sub_token(remainder)
-            tokens.append(token)
+            t, eos, r = self.sub_token(remainder)
+            tokens.append(t)
             eos_probs.append(eos)
+            remainder = r
 
-            # Dynamic termination during single-sample inference
-            if not self.training and latent_vector.size(0) == 1:
-                if eos.item() > self.eos_threshold:
-                    break
+            # Ignore EOS for now
+            # if not self.training and latent_vector.size(0) == 1:
+            #     if eos.item() > self.eos_threshold:
+            #         break
 
         return tokens, eos_probs
 
